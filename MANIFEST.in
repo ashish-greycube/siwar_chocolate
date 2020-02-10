@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include siwar_chocolate *.css
+recursive-include siwar_chocolate *.csv
+recursive-include siwar_chocolate *.html
+recursive-include siwar_chocolate *.ico
+recursive-include siwar_chocolate *.js
+recursive-include siwar_chocolate *.json
+recursive-include siwar_chocolate *.md
+recursive-include siwar_chocolate *.png
+recursive-include siwar_chocolate *.py
+recursive-include siwar_chocolate *.svg
+recursive-include siwar_chocolate *.txt
+recursive-exclude siwar_chocolate *.pyc
