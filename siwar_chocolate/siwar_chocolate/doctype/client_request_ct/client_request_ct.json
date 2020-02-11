@@ -1,0 +1,203 @@
+{
+ "autoname": "naming_series:",
+ "creation": "2020-02-11 07:29:10.549347",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "is_tray_required",
+  "tray_no",
+  "assign_to",
+  "price_list",
+  "column_break_7",
+  "status",
+  "delivery_date",
+  "insurance_amount",
+  "advance_amount",
+  "approximate_amount",
+  "section_break_13",
+  "client_request_item",
+  "section_break_15",
+  "column_break_16",
+  "total",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "SC-CR-.YY-####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_tray_required",
+   "fieldtype": "Check",
+   "label": "Is Tray Required",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.is_tray_required ==1",
+   "fieldname": "tray_no",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Tray No",
+   "options": "Asset"
+  },
+  {
+   "fieldname": "assign_to",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Assign To",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nDraft\nSubmitted\nReady To Deliver\nDelivered"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Delivery Date",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "insurance_amount",
+   "fieldtype": "Currency",
+   "label": "Insurance Amount"
+  },
+  {
+   "fieldname": "advance_amount",
+   "fieldtype": "Currency",
+   "label": "Advance Amount"
+  },
+  {
+   "fieldname": "approximate_amount",
+   "fieldtype": "Currency",
+   "label": "Approximate Amount"
+  },
+  {
+   "fieldname": "section_break_13",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client_request_item",
+   "fieldtype": "Table",
+   "label": "Client Request Item",
+   "options": "Client Request Item"
+  },
+  {
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Client Request CT",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "modified": "2020-02-11 07:30:10.930492",
+ "modified_by": "Administrator",
+ "module": "Siwar Chocolate",
+ "name": "Client Request CT",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Master Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
