@@ -10,7 +10,7 @@
   "is_tray_required",
   "tray_no",
   "assign_to",
-  "price_list",
+  "selling_price_list",
   "column_break_7",
   "status",
   "delivery_date",
@@ -62,12 +62,6 @@
    "in_standard_filter": 1,
    "label": "Assign To",
    "options": "Employee"
-  },
-  {
-   "fieldname": "price_list",
-   "fieldtype": "Link",
-   "label": "Price List",
-   "options": "Price List"
   },
   {
    "fieldname": "column_break_7",
@@ -136,10 +130,16 @@
    "options": "Client Request CT",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "selling_price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "options": "Price List"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-02-11 10:12:53.020657",
+ "modified": "2020-02-12 07:15:35.975355",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
