@@ -1,0 +1,85 @@
+{
+ "creation": "2020-02-12 09:21:12.594470",
+ "description": " Client Request CT Item ",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "qty",
+  "rate",
+  "amount",
+  "internal_use",
+  "conversion_factor",
+  "stock_uom",
+  "warehouse"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rate",
+   "options": "currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "currency",
+   "reqd": 1
+  },
+  {
+   "description": "use in make_stock_entry",
+   "fieldname": "conversion_factor",
+   "fieldtype": "Float",
+   "hidden": 1
+  },
+  {
+   "description": "use in make_stock_entry",
+   "fieldname": "stock_uom",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "options": "UOM"
+  },
+  {
+   "description": "use in make_stock_entry",
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "internal_use",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-02-14 08:59:19.192770",
+ "modified_by": "Administrator",
+ "module": "Siwar Chocolate",
+ "name": "Client Request CT Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
