@@ -17,7 +17,5 @@ frappe.listview_settings['Client Request CT'] = {
 		} 
 	},
 	onload: function(listview) {
-
-		console.log('------------')
 	}
 };
