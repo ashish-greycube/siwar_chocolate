@@ -42,6 +42,7 @@
  ],
  "fields": [
   {
+   "columns": 1,
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
@@ -49,6 +50,7 @@
    "reqd": 1
   },
   {
+   "columns": 1,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -84,11 +86,16 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nDraft\nSubmitted\nUnder Preparation\nReady To Deliver\nDelivered"
+   "options": "\nDraft\nSubmitted\nUnder Preparation\nReady To Deliver\nDelivered\nCancelled",
+   "reqd": 1
   },
   {
    "default": "Today",
@@ -128,6 +135,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -209,6 +217,7 @@
    "options": "Currency"
   },
   {
+   "allow_on_submit": 1,
    "description": "use in get_payment_entry",
    "fieldname": "base_grand_total",
    "fieldtype": "Currency",
@@ -234,6 +243,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "collapsible": 1,
    "fieldname": "reference",
    "fieldtype": "Section Break",
    "label": "Reference"
@@ -253,7 +263,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2020-02-14 09:21:14.429729",
+ "modified": "2020-02-14 12:11:43.197368",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
@@ -311,6 +321,8 @@
    "write": 1
   }
  ],
+ "search_fields": "status",
+ "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

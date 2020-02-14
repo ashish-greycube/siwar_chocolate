@@ -11,6 +11,9 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt,get_url_to_form,nowdate
 
 class ClientRequestCT(Document):
+	def on_submit(self):
+		frappe.db.set(self, 'status', 'Submitted')
+
 	def on_cancel(self):
 		stock_entry_docstatus = frappe.db.get_value('Stock Entry', self.stock_entry, 'docstatus')
 		sales_invoice_docstatus = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
