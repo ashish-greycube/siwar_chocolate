@@ -100,8 +100,8 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		row.qty =1
 		row.rate = flt(source.total)
 
-		items=source.get("items")
-		for item in items:
+		# items=source.get("items")
+		# for item in items:
 		set_missing_values(source, target)
 		#Get the advance paid Journal Entries in Sales Invoice Advance
 		if target.get("allocate_advances_automatically"):
