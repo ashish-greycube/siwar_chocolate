@@ -8,13 +8,16 @@
  "field_order": [
   "naming_series",
   "customer",
+  "phone_no",
   "is_tray_required",
   "tray_no",
   "assign_to",
   "selling_price_list",
+  "is_exact_qty_required",
   "column_break_7",
   "status",
   "delivery_date",
+  "pickup_date_time",
   "insurance_amount",
   "advance_amount",
   "approximate_amount",
@@ -25,6 +28,7 @@
   "total",
   "amended_from",
   "reference",
+  "tray_status",
   "stock_entry",
   "sales_invoice",
   "internal_use",
@@ -72,7 +76,7 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Tray No",
-   "options": "Asset"
+   "options": "Item"
   },
   {
    "fieldname": "assign_to",
@@ -260,10 +264,37 @@
    "fieldtype": "Link",
    "hidden": 1,
    "options": "Currency"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "pickup_date_time",
+   "fieldtype": "Datetime",
+   "label": "PIckup Date TIme"
+  },
+  {
+   "fetch_from": "customer.phone_no_cf",
+   "fieldname": "phone_no",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Phone No"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_exact_qty_required",
+   "fieldtype": "Check",
+   "label": "Is Exact Qty Required"
+  },
+  {
+   "depends_on": "eval:doc.is_tray_required == 1",
+   "fieldname": "tray_status",
+   "fieldtype": "Select",
+   "label": "Tray Status",
+   "options": "\nBooked\nAvailable\nWith Client"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-02-14 12:11:43.197368",
+ "modified": "2020-07-18 07:53:08.807794",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

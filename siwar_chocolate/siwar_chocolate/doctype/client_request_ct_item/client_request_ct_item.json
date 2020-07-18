@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
+  "item_name",
   "qty",
   "rate",
   "amount",
@@ -72,10 +73,16 @@
   {
    "fieldname": "internal_use",
    "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "item.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name"
   }
  ],
  "istable": 1,
- "modified": "2020-02-14 11:46:18.982897",
+ "modified": "2020-07-18 07:33:57.419787",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT Item",
