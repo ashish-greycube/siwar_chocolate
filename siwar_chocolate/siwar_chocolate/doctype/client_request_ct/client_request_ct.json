@@ -16,7 +16,9 @@
   "is_exact_qty_required",
   "column_break_7",
   "status",
+  "shipment_type",
   "delivery_date",
+  "delivery_time",
   "pickup_date_time",
   "insurance_amount",
   "advance_amount",
@@ -267,6 +269,7 @@
   },
   {
    "allow_on_submit": 1,
+   "depends_on": "eval:doc.shipment_type ==\"PickUp\"",
    "fieldname": "pickup_date_time",
    "fieldtype": "Datetime",
    "label": "PIckup Date TIme"
@@ -291,10 +294,23 @@
    "fieldtype": "Select",
    "label": "Tray Status",
    "options": "\nBooked\nAvailable\nWith Client"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "shipment_type",
+   "fieldtype": "Select",
+   "label": "Shipment Type",
+   "options": "\nPickUp\nDelivery"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "delivery_time",
+   "fieldtype": "Time",
+   "label": "Delivery Time"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-07-18 07:53:08.807794",
+ "modified": "2020-07-20 08:34:52.146362",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
