@@ -249,7 +249,7 @@ def make_material_request(source_name, target_doc=None):
 		target.qty = flt(obj.qty) or 0
 
 	def set_missing_values(source, target):
-		target.transaction_date=source.delivery_date or nowdate()
+		target.transaction_date=nowdate()
 		target.requested_by=frappe.session.user
 		target.customer=source.customer
 		target.material_request_type='Purchase'

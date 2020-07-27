@@ -188,17 +188,6 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_return_qty",
 			frm: this.frm
 		});		
-		// return frappe.call({
-		// 	method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_return_qty",
-		// 	args: {
-		// 		"dt": cur_frm.doc.doctype,
-		// 		"dn": cur_frm.doc.name
-		// 	},
-		// 	callback: function(r) {
-		// 		var doclist = frappe.model.sync(r.message);
-		// 		frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
-		// 	}
-		// });		
 	},	
 	make_stock_entry: function(frm) {
 		frappe.model.open_mapped_doc({
