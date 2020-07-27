@@ -85,7 +85,10 @@ doctype_js = {
 doc_events = {
 	"Stock Entry": {
 		"on_submit": "siwar_chocolate.api.update_client_request_status",
-	}
+	},
+	"Material Request": {
+		"validate": "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.validate_qty_for_material_request",
+	}	
 }
 
 # Scheduled Tasks

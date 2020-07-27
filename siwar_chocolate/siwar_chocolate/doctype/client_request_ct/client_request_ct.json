@@ -32,6 +32,7 @@
   "reference",
   "tray_status",
   "sales_invoice",
+  "material_request",
   "column_break_27",
   "stock_entry",
   "tray_issue_stock_entry",
@@ -327,10 +328,16 @@
    "fieldtype": "Data",
    "label": "Stock Entry : Tray Return",
    "options": "Stock Entry"
+  },
+  {
+   "fieldname": "material_request",
+   "fieldtype": "Data",
+   "label": "Material Request",
+   "options": "Material Request"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-07-27 13:40:15.617165",
+ "modified": "2020-07-27 16:19:47.380216",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

@@ -8,7 +8,7 @@ from frappe import _, scrub,msgprint
 from frappe.model.document import Document
 from erpnext.controllers.selling_controller import SellingController
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt,get_url_to_form,nowdate,cstr,nowtime
+from frappe.utils import flt,get_url_to_form,nowdate,cstr,nowtime,get_link_to_form
 from erpnext.stock.utils import get_stock_balance
 
 
@@ -272,7 +272,40 @@ def make_material_request(source_name, target_doc=None):
 		}
 	}, target_doc, set_missing_values)
 	doclist.save()
+	frappe.db.set_value('Client Request CT', source_name, 'material_request', doclist.name)
 	return doclist		
+
+@frappe.whitelist()
+def validate_qty_for_material_request(self,method):
+	client_request_list=frappe.db.get_all('Client Request CT',
+    filters={
+		'is_exact_qty_required':1,
+		'material_request':['=', self.name],
+    },
+    fields=['name','material_request'],
+    as_list=False
+	)
+	for client_request in client_request_list:
+		client_request_ct=frappe.get_doc('Client Request CT', client_request.name)
+		client_request_ct_items=client_request_ct.get("items")
+		material_request_items=self.get("items")
+		client_list=[]
+		material_list=[]
+
+		for item in client_request_ct_items:
+			client_list.append({'item_code':item.item_code,'qty':item.qty})
+		for item in material_request_items:
+			material_list.append({'item_code':item.item_code,'qty':item.qty})
+
+		for i in client_list:
+			if i not in material_list:
+				frappe.throw(_("Material Request should have item <b>{0}</b> with qty:<b>{1}</b>. <br> qty and item cannot be changed.<br> Client Request Doc is {2}").format(i.get('item_code'),i.get('qty'),get_link_to_form("Client Request CT", client_request.name)))								
+
+		for i in material_list:
+			if i not in client_list:
+				frappe.throw(_("Material Request has item <b>{0}</b>. It is not in Client Request Doc {1}").format(i.get('item_code'),get_link_to_form("Client Request CT", client_request.name)))								
+
+
 
 @frappe.whitelist()	
 def make_stock_entry_for_return_qty(source_name, target_doc=None):
