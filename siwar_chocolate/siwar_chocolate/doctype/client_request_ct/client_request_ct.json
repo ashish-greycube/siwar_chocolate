@@ -31,8 +31,11 @@
   "amended_from",
   "reference",
   "tray_status",
-  "stock_entry",
   "sales_invoice",
+  "column_break_27",
+  "stock_entry",
+  "tray_issue_stock_entry",
+  "tray_return_stock_entry",
   "internal_use",
   "currency",
   "company",
@@ -69,8 +72,7 @@
    "default": "1",
    "fieldname": "is_tray_required",
    "fieldtype": "Check",
-   "label": "Is Tray Required",
-   "reqd": 1
+   "label": "Is Tray Required"
   },
   {
    "depends_on": "eval:doc.is_tray_required ==1",
@@ -208,6 +210,7 @@
   {
    "fieldname": "stock_entry",
    "fieldtype": "Data",
+   "label": "Stock Entry Reference",
    "options": "Stock Entry"
   },
   {
@@ -293,7 +296,8 @@
    "fieldname": "tray_status",
    "fieldtype": "Select",
    "label": "Tray Status",
-   "options": "\nBooked\nAvailable\nWith Client"
+   "options": "\nBooked\nAvailable\nWith Client",
+   "read_only": 1
   },
   {
    "allow_on_submit": 1,
@@ -307,10 +311,26 @@
    "fieldname": "delivery_time",
    "fieldtype": "Time",
    "label": "Delivery Time"
+  },
+  {
+   "fieldname": "column_break_27",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tray_issue_stock_entry",
+   "fieldtype": "Data",
+   "label": "Stock Entry : Tray Issue",
+   "options": "Stock Entry"
+  },
+  {
+   "fieldname": "tray_return_stock_entry",
+   "fieldtype": "Data",
+   "label": "Stock Entry : Tray Return",
+   "options": "Stock Entry"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-07-20 08:34:52.146362",
+ "modified": "2020-07-27 13:40:15.617165",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

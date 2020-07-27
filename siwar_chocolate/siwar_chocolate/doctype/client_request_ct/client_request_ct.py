@@ -8,10 +8,60 @@ from frappe import _, scrub,msgprint
 from frappe.model.document import Document
 from erpnext.controllers.selling_controller import SellingController
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt,get_url_to_form,nowdate
+from frappe.utils import flt,get_url_to_form,nowdate,cstr,nowtime
+from erpnext.stock.utils import get_stock_balance
+
 
 class ClientRequestCT(Document):
+	def create_stock_entry(self,tray_return=False):
+		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		default_client_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_client_warehouse_cf')
+		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
+
+		if tray_return==False:
+			from_warehouse=default_tray_warehouse_cf
+			to_warehouse=default_client_warehouse_cf
+			posting_date=self.delivery_date
+			posting_time="00:01"
+		elif tray_return==True:
+			from_warehouse=default_client_warehouse_cf
+			to_warehouse=default_tray_warehouse_cf
+			posting_date=nowdate()
+			posting_time=nowtime()
+		stock_entry = frappe.new_doc("Stock Entry")
+		stock_entry.naming_series='STE-'
+		stock_entry.stock_entry_type = "Material Transfer"
+		stock_entry.posting_date=posting_date
+		stock_entry.posting_time=posting_time
+		stock_entry.from_warehouse = from_warehouse
+		stock_entry.to_warehouse = to_warehouse
+		stock_entry.company = default_company
+
+		row=stock_entry.append('items',{})
+		row.item_code=self.tray_no
+		row.qty=1
+
+		stock_entry.insert(ignore_permissions = True)
+		stock_entry.submit()
+		return stock_entry.name	
+
+	def make_tray_return(self):
+		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		stock_entry=self.create_stock_entry(tray_return=True)
+		frappe.db.set(self, 'tray_return_stock_entry', stock_entry)
+		frappe.db.set(self, 'tray_status', 'Available')	
+		return stock_entry
+		
 	def on_submit(self):
+		if self.is_tray_required==1:
+			tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},self.tray_no)
+			print('tray_list',tray_list,len(tray_list))
+			if len(tray_list)==0:
+				frappe.throw(_("Tray is occupied. Cannot submit."))
+			frappe.db.set(self, 'tray_status', 'Booked')
+			stock_entry=self.create_stock_entry(tray_return=False)
+			frappe.db.set(self, 'tray_issue_stock_entry', stock_entry)
+
 		frappe.db.set(self, 'status', 'Submitted')
 
 	def on_cancel(self):
@@ -26,27 +76,63 @@ class ClientRequestCT(Document):
 		elif sales_invoice_docstatus == 1:
 			frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format("<a href='desk#Form/Sales Invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
 		frappe.db.set(self, 'status', 'Cancelled')
+		frappe.db.set(self, 'tray_status', 'Available')
 
 
-def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters):
+def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None):
+	print('doctype',doctype, 'txt',txt, 'searchfield', searchfield,'start',start, 'page_len',page_len, 'filters',filters,'item_code',item_code)
+	print(doctype, txt, searchfield, start, page_len, filters)
 	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
-	tray_asset_category_cf = frappe.db.get_value('Company', default_company, 'tray_asset_category_cf')
+	tray_item_group_cf=frappe.db.get_value('Company', default_company, 'tray_item_group_cf')
+	default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
 	delivery_date=filters.get("delivery_date")
-	available_tray_list=frappe.db.sql("""select name,asset_name from `tabAsset` asset where asset_category =%s and name not in
-		(select distinct(tray_no) from `tabClient Request CT` where
-		`tabClient Request CT`.docstatus = 1 and
-		`tabClient Request CT`.delivery_date =%s)""",(tray_asset_category_cf,delivery_date))
-	return available_tray_list
+	if item_code==None:
+		condition_1=" "
+	else:
+		condition_1=" and item.item_code='{item_code}'".format(item_code=item_code)
+
+	tray_items_sql="""
+		SELECT
+			item.item_code as name,
+			item.description as description,
+			0.0 as qty
+		FROM			
+			`tabItem` AS item
+		WHERE
+			item.item_group='{tray_item_group_cf}'
+		{condition}""".format(tray_item_group_cf=tray_item_group_cf,condition=condition_1)
+
+	tray_items = frappe.db.sql(tray_items_sql,as_dict=1)
+	tray_list=[]
+	for item in tray_items:
+		item.qty = get_stock_balance(item_code=item.name,warehouse=default_tray_warehouse_cf,posting_date=delivery_date,posting_time="23:59:59")
+		if item.qty>0:
+			tray_list.append([item.name,item.description,item.qty])
+	return tray_list
+
+#scheduler function
+@frappe.whitelist()
+def update_tray_status():
+	tray_list=frappe.db.get_all('Client Request CT',
+    filters={
+		'docstatus':1,
+        'tray_status': 'Booked',
+		'delivery_date': ['<', nowdate()],
+		'tray_return_stock_entry':['=', ''],
+    },
+    fields=['name','tray_return_stock_entry'],
+    as_list=False
+	)
+	print('tray_list'*20,tray_list)
+	for tray in tray_list:
+		print('tray',tray,tray.name,tray.tray_return_stock_entry)
+		frappe.db.set_value('Client Request CT', tray.name, 'tray_status', 'With Client')
 
 @frappe.whitelist()
 def make_stock_entry(source_name, target_doc=None):
 	def update_item(obj, target, source_parent):
 		# change due to siwari
 		target.qty = flt(obj.qty) or 0
-		# qty = flt(flt(obj.stock_qty) - flt(obj.qty))/ target.conversion_factor \
-		# 	if flt(obj.stock_qty) > flt(obj.qty) else 0
-		# target.qty = qty
-		# target.transfer_qty = qty * obj.conversion_factor
 		target.conversion_factor = obj.conversion_factor
 
 		if source_parent.material_request_type == "Material Transfer" or source_parent.material_request_type == "Customer Provided":
@@ -56,11 +142,6 @@ def make_stock_entry(source_name, target_doc=None):
 
 	def set_missing_values(source, target):
 		target.purpose = source.material_request_type
-		# if source.job_card:
-		# 	target.purpose = 'Material Transfer for Manufacture'
-
-		# if source.material_request_type == "Customer Provided":
-		# 	target.purpose = "Material Receipt"
 
 		target.run_method("calculate_rate_and_amount")
 		target.set_stock_entry_type()
@@ -83,7 +164,6 @@ def make_stock_entry(source_name, target_doc=None):
 				"uom": "stock_uom",
 			},
 			"postprocess": update_item,
-			# "condition": lambda doc: doc.qty < doc.stock_qty
 		}
 	}, target_doc, set_missing_values)
 	# change due to siwari
@@ -102,9 +182,6 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		row.item_code='Mixed Chocolates'
 		row.qty =1
 		row.rate = flt(source.total)
-
-		# items=source.get("items")
-		# for item in items:
 		set_missing_values(source, target)
 		#Get the advance paid Journal Entries in Sales Invoice Advance
 		if target.get("allocate_advances_automatically"):
@@ -118,38 +195,12 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
 
-		# if source.company_address:
-		# 	target.update({'company_address': source.company_address})
-		# else:
-		# 	# set company address
-		# 	target.update(get_company_address(target.company))
-
 		if target.company_address:
 			target.update(get_fetch_values("Sales Invoice", 'company_address', target.company_address))
 
-		# set the redeem loyalty points if provided via shopping cart
-		# if source.loyalty_points and source.order_type == "Shopping Cart":
-		# 	target.redeem_loyalty_points = 1
-
 	def update_item(source, target, source_parent):
 		pass
-		# target.item_code='Mixed Chocolates'
-		# target.qty =1
-		# target.rate = flt(source_parent.total)
-		# target.amount = flt(source.amount) - flt(source.billed_amt)
-		# target.base_amount = target.amount * flt(source_parent.conversion_rate)
-		# target.qty = target.amount / flt(source.rate) if (source.rate and source.billed_amt) else source.qty - source.returned_qty
 
-		# if source_parent.project:
-		# 	target.cost_center = frappe.db.get_value("Project", source_parent.project, "cost_center")
-		# if target.item_code:
-		# 	item = get_item_defaults(target.item_code, source_parent.company)
-		# 	item_group = get_item_group_defaults(target.item_code, source_parent.company)
-		# 	cost_center = item.get("selling_cost_center") \
-		# 		or item_group.get("selling_cost_center")
-
-		# 	if cost_center:
-		# 		target.cost_center = cost_center
 	doclist = get_mapped_doc("Client Request CT", source_name, {
 		"Client Request CT": {
 			"doctype": "Sales Invoice",
@@ -180,7 +231,107 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
 	return doclist	
-	
+
+@frappe.whitelist()	
+def make_stock_entry_for_gift_qty(dt,dn):
+	doc = frappe.get_doc(dt, dn)
+	stock_entry = frappe.new_doc('Stock Entry')
+	stock_entry.naming_series='STE-'
+	stock_entry.stock_entry_type='Material Issue'
+	stock_entry.run_method("set_missing_values")
+	stock_entry.run_method("calculate_taxes_and_totals")	
+	return stock_entry.as_dict()
+
+
+@frappe.whitelist()	
+def make_material_request(source_name, target_doc=None):
+	def update_item(obj, target, source_parent):
+		target.qty = flt(obj.qty) or 0
+
+	def set_missing_values(source, target):
+		target.transaction_date=source.delivery_date or nowdate()
+		target.requested_by=frappe.session.user
+		target.customer=source.customer
+		target.material_request_type='Purchase'
+		target.schedule_date=source.delivery_date
+		target.run_method("onload")
+		target.run_method("set_missing_values")
+
+	doclist = get_mapped_doc("Client Request CT", source_name, {
+		"Client Request CT": {
+			"doctype": "Material Request",
+		},
+		"Client Request CT Item": {
+			"doctype": "Material Request Item",
+			"field_map": {
+				"name": "client_request_ct_item",
+				"parent": "client_request_ct",
+				"uom": "stock_uom",
+			},
+			"postprocess": update_item,
+		}
+	}, target_doc, set_missing_values)
+	doclist.save()
+	return doclist		
+
+@frappe.whitelist()	
+def make_stock_entry_for_return_qty(source_name, target_doc=None):
+	def update_item(obj, target, source_parent):
+		target.qty = flt(obj.qty) or 0
+		target.basic_rate = obj.rate
+		target.uom=frappe.db.get_value('Item', obj.item_code, 'stock_uom')
+
+	def set_missing_values(source, target):
+		target.naming_series='STE-'
+		target.stock_entry_type='Material Receipt'		
+		target.run_method("onload")
+		target.run_method("set_missing_values")
+		target.run_method("calculate_rate_and_amount")
+
+	doclist = get_mapped_doc("Client Request CT", source_name, {
+		"Client Request CT": {
+			"doctype": "Stock Entry",
+		},
+		"Client Request CT Item": {
+			"doctype": "Stock Entry Detail",
+			"field_map": {
+				"name": "client_request_ct_item",
+				"parent": "client_request_ct"
+			},
+			"postprocess": update_item,
+		}
+	}, target_doc, set_missing_values)
+	return doclist	
+
+@frappe.whitelist()	
+def make_jv_entry(dt,dn):
+	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+	default_cash_account=frappe.db.get_value('Company', default_company, 'default_cash_account')
+	default_receivable_account=frappe.db.get_value('Company', default_company, 'default_receivable_account')
+	doc = frappe.get_doc(dt, dn)
+	customer=doc.customer
+	insurance_amount=doc.insurance_amount
+
+
+	journal_entry = frappe.new_doc('Journal Entry')
+	journal_entry.voucher_type = 'Journal Entry'
+	journal_entry.naming_series='SJV-'
+	journal_entry.company = default_company
+	journal_entry.posting_date = nowdate()
+	account_amt_list = []
+
+	account_amt_list.append({
+		"account": default_cash_account,
+		"debit_in_account_currency": insurance_amount,
+		})
+	account_amt_list.append({
+		"account": default_receivable_account,
+		"credit_in_account_currency": insurance_amount,
+		"party_type": "Customer",
+		"party":customer,
+		})
+	journal_entry.set("accounts", account_amt_list)
+	return journal_entry.as_dict()	
 
 @frappe.whitelist()
 def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
@@ -314,15 +465,7 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 	else:
 		# siwari change
 		pass
-		# pe.append("references", {
-		# 	'reference_doctype': 'Sales Invoice',
-		# 	'reference_name': doc.get("sales_invoice"),
-		# 	"bill_no": doc.get("bill_no"),
-		# 	"due_date": doc.get("due_date"),
-		# 	'total_amount': grand_total,
-		# 	'outstanding_amount': outstanding_amount,
-		# 	'allocated_amount': outstanding_amount
-		# })
+
 
 	pe.setup_party_account_field()
 	pe.set_missing_values()

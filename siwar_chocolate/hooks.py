@@ -26,7 +26,10 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Company" : "public/js/company.js",
+	"Material Request" : "public/js/material_request.js"	
+	}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -87,6 +90,18 @@ doc_events = {
 
 # Scheduled Tasks
 # ---------------
+
+scheduler_events = {
+	"daily": [
+		"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
+	],
+    "cron": {
+        "00 05 * * *": [
+            "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
+        ]
+    }	
+}
+
 
 # scheduler_events = {
 # 	"all": [

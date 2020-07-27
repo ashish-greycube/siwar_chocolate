@@ -3,6 +3,19 @@
 {% include 'erpnext/selling/sales_common.js' %}
 
 frappe.ui.form.on('Client Request CT', {
+
+	is_tray_required:function (frm) {
+		frm.toggle_reqd('tray_no', frm.doc.is_tray_required === 1 ? 1:0);
+	},
+	
+	validate:function (frm) {
+		frm.toggle_reqd('pickup_date_time', frm.doc.shipment_type === 'PickUp' ? 1:0);
+		},
+	
+	shipment_type:function (frm) {
+			frm.toggle_reqd('pickup_date_time', frm.doc.shipment_type === 'PickUp' ? 1:0);
+	},
+	
 	onload: function(frm) {
 		if (!frm.doc.delivery_date){
 			frm.set_value('delivery_date', frappe.datetime.get_today())
@@ -11,11 +24,13 @@ frappe.ui.form.on('Client Request CT', {
 			frm.trigger('update_available_tray_list');
 		}	
 	},
+	
 	delivery_date: function(frm) {
 		if (frm.doc.delivery_date){
 			frm.trigger('update_available_tray_list');
 		}		
 	},	
+	
 	tray_no: function(frm) {
 		if (frm.doc.delivery_date){
 			frm.trigger('update_available_tray_list');
@@ -43,13 +58,24 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 		this._super();
 
 		this.frm.page.set_inner_btn_group_as_primary(__('Create'));
-		this.frm.add_custom_button(__('Tray Return'), () => this.make_tray_return(), __('Create'));
+
+		this.frm.add_custom_button(__('Gift Qty'), () => this.make_stock_entry_for_gift_qty(), __('Create'));
+		this.frm.add_custom_button(__('Return Qty'), () => this.make_stock_entry_for_return_qty(), __('Create'));
+		this.frm.add_custom_button(__('Material Request'), () => this.make_material_request(doc.is_exact_qty_required), __('Create'));
 
 		if (this.frm.doc.status == 'Draft' && this.frm.is_new()==undefined) {
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
 		}
 		
 		if(flt(doc.docstatus)==1) {
+			if (doc.tray_issue_stock_entry && doc.tray_return_stock_entry===undefined && doc.is_tray_required===1) {
+				this.frm.add_custom_button(__('Tray Return'), () => this.make_tray_return(doc), __('Create'));
+			}
+
+			if (doc.insurance_amount>0 && doc.tray_status==='Available' && doc.is_tray_required===1) {
+				this.frm.add_custom_button(__('Return Insurance Amount'), () => this.make_jv_for_insurance_amount(doc), __('Create'));
+			}
+
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
 			if (doc.stock_entry == undefined) {
 				this.frm.add_custom_button(__("Issue Material"),() => this.make_stock_entry(this.frm), __('Create'));
@@ -65,14 +91,71 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			}		
 		}
 	},
+	make_material_request: function(is_exact_qty_required) {
+		let opts={
+			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_material_request",
+			frm: this.frm
+		}
+		if (opts.frm && opts.frm.doc.__unsaved) {
+			frappe.throw(__("You have unsaved changes in this form. Please save before you continue."));
+
+		} else if (!opts.source_name && opts.frm) {
+			opts.source_name = opts.frm.doc.name;
+
+		// Allow opening a mapped doc without a source document name
+		}		
+		frappe.call({
+			type: "POST",
+			method: 'frappe.model.mapper.make_mapped_doc',
+			args: {
+				method: opts.method,
+				source_name: opts.source_name,
+				args: opts.args || null,
+				selected_children: opts.frm ? opts.frm.get_selected() : null
+			},
+			freeze: true,
+			callback: function(r) {
+				if(!r.exc) {
+					frappe.model.sync(r.message);
+					if(opts.run_link_triggers) {
+						frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
+					}
+					frappe.set_route("Form", r.message.doctype, r.message.name,{ 'is_exact_qty_required':is_exact_qty_required });
+				}
+			}
+		})		
+
+	},
+	make_jv_for_insurance_amount: function() {
+		return frappe.call({
+			method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_jv_entry",
+			args: {
+				"dt": cur_frm.doc.doctype,
+				"dn": cur_frm.doc.name
+			},
+			callback: function(r) {
+				var doclist = frappe.model.sync(r.message);
+				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+			}
+		});
+	},
 	make_sales_invoice: function() {
 		frappe.model.open_mapped_doc({
 			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_sales_invoice",
 			frm: this.frm
 		})
 	},
-	make_tray_return: function() {
-		
+	make_tray_return: function(doc) {
+		cur_frm.call({
+			method: "make_tray_return",
+			doc: doc,
+			callback: function(r) {
+				if (r.message) {
+				let stock_entry=r.message	;
+				frappe.msgprint(__("Stock Entry {0} is done. Tray is 'Available' now.", [stock_entry]));
+				}
+			}
+		});		
 	},
 	make_payment_entry: function() {
 		return frappe.call({
@@ -87,6 +170,36 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			}
 		});
 	},
+	make_stock_entry_for_gift_qty: function(frm) {
+		return frappe.call({
+			method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_gift_qty",
+			args: {
+				"dt": cur_frm.doc.doctype,
+				"dn": cur_frm.doc.name
+			},
+			callback: function(r) {
+				var doclist = frappe.model.sync(r.message);
+				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+			}
+		});		
+	},
+	make_stock_entry_for_return_qty: function(frm) {
+		frappe.model.open_mapped_doc({
+			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_return_qty",
+			frm: this.frm
+		});		
+		// return frappe.call({
+		// 	method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_return_qty",
+		// 	args: {
+		// 		"dt": cur_frm.doc.doctype,
+		// 		"dn": cur_frm.doc.name
+		// 	},
+		// 	callback: function(r) {
+		// 		var doclist = frappe.model.sync(r.message);
+		// 		frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+		// 	}
+		// });		
+	},	
 	make_stock_entry: function(frm) {
 		frappe.model.open_mapped_doc({
 			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry",
