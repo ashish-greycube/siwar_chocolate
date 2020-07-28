@@ -234,10 +234,13 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 
 @frappe.whitelist()	
 def make_stock_entry_for_gift_qty(dt,dn):
+	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+	default_company_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_company_warehouse_cf')	
 	doc = frappe.get_doc(dt, dn)
 	stock_entry = frappe.new_doc('Stock Entry')
 	stock_entry.naming_series='STE-'
 	stock_entry.stock_entry_type='Material Issue'
+	stock_entry.from_warehouse=default_company_warehouse_cf
 	stock_entry.run_method("set_missing_values")
 	stock_entry.run_method("calculate_taxes_and_totals")	
 	return stock_entry.as_dict()
