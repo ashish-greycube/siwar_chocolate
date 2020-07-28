@@ -27,8 +27,7 @@ app_license = "MIT"
 
 # include js in doctype views
 doctype_js = {
-	"Company" : "public/js/company.js",
-	"Material Request" : "public/js/material_request.js"	
+	"Company" : "public/js/company.js"
 	}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -85,10 +84,7 @@ doctype_js = {
 doc_events = {
 	"Stock Entry": {
 		"on_submit": "siwar_chocolate.api.update_client_request_status",
-	},
-	"Material Request": {
-		"validate": "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.validate_qty_for_material_request",
-	}	
+	}
 }
 
 # Scheduled Tasks

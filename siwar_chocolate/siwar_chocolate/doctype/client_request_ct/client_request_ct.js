@@ -61,7 +61,6 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 
 		this.frm.add_custom_button(__('Gift Qty'), () => this.make_stock_entry_for_gift_qty(), __('Create'));
 		this.frm.add_custom_button(__('Return Qty'), () => this.make_stock_entry_for_return_qty(), __('Create'));
-		this.frm.add_custom_button(__('Material Request'), () => this.make_material_request(doc.is_exact_qty_required), __('Create'));
 
 		if (this.frm.doc.status == 'Draft' && this.frm.is_new()==undefined) {
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
@@ -90,41 +89,6 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 				})			
 			}		
 		}
-	},
-	make_material_request: function(is_exact_qty_required) {
-		let opts={
-			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_material_request",
-			frm: this.frm
-		}
-		if (opts.frm && opts.frm.doc.__unsaved) {
-			frappe.throw(__("You have unsaved changes in this form. Please save before you continue."));
-
-		} else if (!opts.source_name && opts.frm) {
-			opts.source_name = opts.frm.doc.name;
-
-		// Allow opening a mapped doc without a source document name
-		}		
-		frappe.call({
-			type: "POST",
-			method: 'frappe.model.mapper.make_mapped_doc',
-			args: {
-				method: opts.method,
-				source_name: opts.source_name,
-				args: opts.args || null,
-				selected_children: opts.frm ? opts.frm.get_selected() : null
-			},
-			freeze: true,
-			callback: function(r) {
-				if(!r.exc) {
-					frappe.model.sync(r.message);
-					if(opts.run_link_triggers) {
-						frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
-					}
-					frappe.set_route("Form", r.message.doctype, r.message.name,{ 'is_exact_qty_required':is_exact_qty_required });
-				}
-			}
-		})		
-
 	},
 	make_jv_for_insurance_amount: function() {
 		return frappe.call({
