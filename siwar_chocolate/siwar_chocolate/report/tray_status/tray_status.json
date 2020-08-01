@@ -1,0 +1,46 @@
+{
+ "add_total_row": 0,
+ "creation": "2020-08-01 07:49:18.134158",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2020-08-01 08:03:28.525594",
+ "modified_by": "Administrator",
+ "module": "Siwar Chocolate",
+ "name": "Tray Status",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "select \ncr.tray_no,\nit.item_name,\n0 as available, \n0 as booked, \n0 as 'With Client' \nfrom \n`tabClient Request CT` as cr \ninner join `tabItem` as it \nON cr.tray_no = it.item_code\n",
+ "ref_doctype": "Client Request CT",
+ "report_name": "Tray Status",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Sales Master Manager"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Sales Master Manager"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ]
+}
