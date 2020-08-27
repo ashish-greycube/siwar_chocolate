@@ -79,6 +79,8 @@ class ClientRequestCT(Document):
 		frappe.db.set(self, 'tray_status', 'Available')
 
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None):
 	print('doctype',doctype, 'txt',txt, 'searchfield', searchfield,'start',start, 'page_len',page_len, 'filters',filters,'item_code',item_code)
 	print(doctype, txt, searchfield, start, page_len, filters)
