@@ -16,6 +16,20 @@ def get_data():
                         }
                         
                     ]
+                },
+                {
+                    "label": _("Reports"),
+                    "items": [
+                                {
+                                        "type": "report",
+                                        "name": "Siwar Sales",
+                                        "is_query_report": True,
+                                        "doctype": "File"
+                                }
+                        ]
                 }
+                
             ]
             return config
+
+

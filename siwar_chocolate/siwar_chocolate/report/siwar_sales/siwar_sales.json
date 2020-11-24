@@ -7,7 +7,7 @@
  "doctype": "Report",
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2020-11-24 20:14:37.119369",
+ "modified": "2020-11-24 20:32:15.805854",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Sales",
@@ -17,5 +17,12 @@
  "ref_doctype": "Client Request CT",
  "report_name": "Siwar Sales",
  "report_type": "Query Report",
- "roles": []
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ]
 }
