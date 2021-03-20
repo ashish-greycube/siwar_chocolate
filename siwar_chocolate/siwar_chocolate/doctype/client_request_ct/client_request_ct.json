@@ -6,12 +6,11 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "naming_series",
   "customer",
   "phone_no",
-  "is_tray_required",
-  "tray_no",
   "assign_to",
+  "client_request_date",
+  "client_request_type",
   "selling_price_list",
   "remarks",
   "column_break_7",
@@ -23,7 +22,11 @@
   "insurance_amount",
   "advance_amount",
   "approximate_amount",
+  "tray_details_section",
+  "is_tray_required",
+  "tray_items",
   "section_break_13",
+  "combine_all_as_mixed_chocolate",
   "items",
   "section_break_15",
   "column_break_16",
@@ -38,6 +41,7 @@
   "tray_issue_stock_entry",
   "tray_return_stock_entry",
   "internal_use",
+  "naming_series",
   "currency",
   "company",
   "conversion_rate",
@@ -53,10 +57,13 @@
  "fields": [
   {
    "columns": 1,
+   "default": "SC-CR-.YY.-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Series",
    "options": "SC-CR-.YY.-",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -74,14 +81,6 @@
    "fieldname": "is_tray_required",
    "fieldtype": "Check",
    "label": "Is Tray Required"
-  },
-  {
-   "depends_on": "eval:doc.is_tray_required ==1",
-   "fieldname": "tray_no",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Tray No",
-   "options": "Item"
   },
   {
    "fieldname": "assign_to",
@@ -212,6 +211,7 @@
    "fieldname": "stock_entry",
    "fieldtype": "Data",
    "label": "Stock Entry Reference",
+   "no_copy": 1,
    "options": "Stock Entry"
   },
   {
@@ -219,7 +219,9 @@
    "fieldname": "sales_invoice",
    "fieldtype": "Data",
    "label": "Sales Invoice Reference",
-   "options": "Sales Invoice"
+   "no_copy": 1,
+   "options": "Sales Invoice",
+   "read_only": 1
   },
   {
    "description": "use in get_payment_entry",
@@ -293,7 +295,8 @@
    "fieldname": "tray_status",
    "fieldtype": "Select",
    "label": "Tray Status",
-   "options": "\nBooked\nAvailable\nWith Client",
+   "no_copy": 1,
+   "options": "\nBooked\nAvailable\nPartial Available\nWith Client",
    "read_only": 1
   },
   {
@@ -317,28 +320,65 @@
    "fieldname": "tray_issue_stock_entry",
    "fieldtype": "Data",
    "label": "Stock Entry : Tray Issue",
+   "no_copy": 1,
    "options": "Stock Entry"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "tray_return_stock_entry",
-   "fieldtype": "Data",
+   "fieldtype": "Table MultiSelect",
    "label": "Stock Entry : Tray Return",
-   "options": "Stock Entry"
+   "no_copy": 1,
+   "options": "Client Request Tray Return Stock Entry",
+   "read_only": 1
   },
   {
    "fieldname": "material_request",
    "fieldtype": "Data",
    "label": "Material Request",
+   "no_copy": 1,
    "options": "Material Request"
   },
   {
    "fieldname": "remarks",
    "fieldtype": "Small Text",
    "label": "Remarks"
+  },
+  {
+   "fieldname": "tray_details_section",
+   "fieldtype": "Section Break",
+   "label": "Tray Details"
+  },
+  {
+   "depends_on": "eval:doc.is_tray_required ==1",
+   "fieldname": "tray_items",
+   "fieldtype": "Table",
+   "options": "Client Request CT Tray Item"
+  },
+  {
+   "default": "Today",
+   "fieldname": "client_request_date",
+   "fieldtype": "Date",
+   "label": "Client Request Date"
+  },
+  {
+   "fieldname": "client_request_type",
+   "fieldtype": "Select",
+   "label": "Client Request Type",
+   "options": "\nC.K\nSiwar",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "description": "when sales invoice gets created",
+   "fieldname": "combine_all_as_mixed_chocolate",
+   "fieldtype": "Check",
+   "label": "Combine All As Mixed Chocolate?"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-07-28 14:37:02.357195",
+ "modified": "2021-03-18 17:53:23.652807",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

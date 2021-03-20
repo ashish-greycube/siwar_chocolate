@@ -23,3 +23,27 @@ def update_client_request_status(self,method):
 			client_request_doc.total = sum([flt(client_item.amount) for client_item in client_request_items ])
 			client_request_doc.base_grand_total=client_request_doc.total
 			client_request_doc.save()
+
+
+def unlink_client_request_from_sales_invoice(self,method):
+	if self.linked_client_request:
+		linked_client_request=self.linked_client_request
+		sales_invoice=self.name
+		frappe.db.set_value('Client Request CT',linked_client_request, 'sales_invoice', '')
+		frappe.db.set_value('Sales Invoice', sales_invoice , 'linked_client_request', '')
+		frappe.db.set_value('Client Request CT', linked_client_request, 'status', 'Submitted')
+		frappe.db.commit()
+		frappe.msgprint(_("Sales Invoice {0} and Client Request {1} are unlinked.")
+						.format(sales_invoice, linked_client_request))	
+				
+
+def unlink_client_request_from_stock_entry(self,method):
+	if self.client_request_material_issue:
+		client_request_material_issue=self.client_request_material_issue
+		stock_entry=self.name
+		frappe.db.set_value('Client Request CT',client_request_material_issue, 'stock_entry', '')
+		frappe.db.set_value('Stock Entry', stock_entry , 'client_request_material_issue', '')
+		frappe.db.set_value('Client Request CT', client_request_material_issue, 'status', 'Submitted')
+		frappe.db.commit()
+		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
+						.format(stock_entry, client_request_material_issue))				

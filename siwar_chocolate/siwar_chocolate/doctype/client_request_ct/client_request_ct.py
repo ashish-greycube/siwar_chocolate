@@ -10,6 +10,7 @@ from erpnext.controllers.selling_controller import SellingController
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt,get_url_to_form,nowdate,cstr,nowtime,get_link_to_form
 from erpnext.stock.utils import get_stock_balance
+from frappe.utils import get_link_to_form,flt
 
 
 class ClientRequestCT(Document):
@@ -37,27 +38,61 @@ class ClientRequestCT(Document):
 		stock_entry.to_warehouse = to_warehouse
 		stock_entry.company = default_company
 
-		row=stock_entry.append('items',{})
-		row.item_code=self.tray_no
-		row.qty=1
+		if tray_return==False:
+			for tray in self.tray_items:
+				row=stock_entry.append('items',{})
+				row.item_code=tray.item_code
+				row.qty=tray.qty
+		elif tray_return==True:
+			for tray in self.tray_items:
+				if tray.return_requested_qty>0:
+					if tray.qty-tray.tray_returned_qty>=tray.return_requested_qty:
+						row=stock_entry.append('items',{})
+						row.item_code=tray.item_code
+						row.qty=tray.return_requested_qty
+					else:
+						frappe.throw(_("Tray {0} has entered qty {1} more than possible return qty {2}.")
+						.format(tray.item_code,tray.return_requested_qty,tray.qty-tray.tray_returned_qty),
+						title=_('Error'))
 
 		stock_entry.insert(ignore_permissions = True)
 		stock_entry.submit()
+		if tray_return==True:
+			fully_returned=True
+			for tray in self.tray_items:
+				if tray.return_requested_qty>0:
+					if tray.qty-tray.tray_returned_qty>=tray.return_requested_qty:
+						tray_returned_qty=flt(tray.return_requested_qty)+flt(tray.tray_returned_qty)
+						frappe.db.set_value('Client Request CT Tray Item', tray.name, 'tray_returned_qty', flt(tray_returned_qty))
+						frappe.db.set_value('Client Request CT Tray Item', tray.name, 'return_requested_qty',0)
+						frappe.db.commit()
+
+			for tray in self.tray_items:
+				if tray.qty>flt(tray.return_requested_qty)+flt(tray.tray_returned_qty):
+					fully_returned=False
+			if fully_returned==True:
+				frappe.db.set(self, 'tray_status', 'Available')	
+			elif fully_returned==False:
+				frappe.db.set(self, 'tray_status', 'Partial Available')																
 		return stock_entry.name	
 
 	def make_tray_return(self):
 		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		stock_entry=self.create_stock_entry(tray_return=True)
-		frappe.db.set(self, 'tray_return_stock_entry', stock_entry)
-		frappe.db.set(self, 'tray_status', 'Available')	
+		self.reload()
+		self.append('tray_return_stock_entry',{'tray_return_stock_entry':stock_entry})
+		self.save()
+		self.reload()
+
 		return stock_entry
 		
 	def on_submit(self):
 		if self.is_tray_required==1:
-			tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},self.tray_no)
-			print('tray_list',tray_list,len(tray_list))
-			if len(tray_list)==0:
-				frappe.throw(_("Tray is occupied. Cannot submit."))
+			for tray in self.tray_items:
+				tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},tray.item_code,tray.qty)
+				if len(tray_list)==0:
+					frappe.throw(_("Tray {0} is occupied. Cannot submit.").format(tray.item_code),title=_('Error'))
+
 			frappe.db.set(self, 'tray_status', 'Booked')
 			stock_entry=self.create_stock_entry(tray_return=False)
 			frappe.db.set(self, 'tray_issue_stock_entry', stock_entry)
@@ -81,9 +116,7 @@ class ClientRequestCT(Document):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None):
-	print('doctype',doctype, 'txt',txt, 'searchfield', searchfield,'start',start, 'page_len',page_len, 'filters',filters,'item_code',item_code)
-	print(doctype, txt, searchfield, start, page_len, filters)
+def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None,qty=1):
 	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 	tray_item_group_cf=frappe.db.get_value('Company', default_company, 'tray_item_group_cf')
 	default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
@@ -108,7 +141,7 @@ def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,
 	tray_list=[]
 	for item in tray_items:
 		item.qty = get_stock_balance(item_code=item.name,warehouse=default_tray_warehouse_cf,posting_date=delivery_date,posting_time="23:59:59")
-		if item.qty>0:
+		if item.qty>0 and item.qty >= qty:
 			tray_list.append([item.name,item.description,item.qty])
 	return tray_list
 
@@ -125,9 +158,7 @@ def update_tray_status():
     fields=['name','tray_return_stock_entry'],
     as_list=False
 	)
-	print('tray_list'*20,tray_list)
 	for tray in tray_list:
-		print('tray',tray,tray.name,tray.tray_return_stock_entry)
 		frappe.db.set_value('Client Request CT', tray.name, 'tray_status', 'With Client')
 
 @frappe.whitelist()
@@ -143,6 +174,7 @@ def make_stock_entry(source_name, target_doc=None):
 			target.s_warehouse = obj.warehouse
 
 	def set_missing_values(source, target):
+		target.client_request_material_issue=source.name
 		target.purpose = source.material_request_type
 
 		target.run_method("calculate_rate_and_amount")
@@ -166,6 +198,7 @@ def make_stock_entry(source_name, target_doc=None):
 				"uom": "stock_uom",
 			},
 			"postprocess": update_item,
+			"condition": lambda doc:frappe.get_cached_value('Item', doc.item_code, 'is_stock_item')==1
 		}
 	}, target_doc, set_missing_values)
 	# change due to siwari
@@ -178,16 +211,20 @@ def make_stock_entry(source_name, target_doc=None):
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	def postprocess(source, target):
-		# change due to siwari
-		target.items=[]
-		row = target.append('items', {})
-		row.item_code='Mixed Chocolates'
-		row.qty =1
-		row.rate = flt(source.total)
+		if source.combine_all_as_mixed_chocolate==1:
+			rate=0
+			for item in source.get('items'):
+				if frappe.get_cached_value('Item', item.item_code, 'is_stock_item')==1:
+					rate=rate+item.amount
+			row = target.append('items', {})
+			row.item_code='Mixed Chocolates'
+			row.qty =1
+			row.rate = flt(rate)		
+		target.linked_client_request=source.name
 		set_missing_values(source, target)
 		#Get the advance paid Journal Entries in Sales Invoice Advance
 		if target.get("allocate_advances_automatically"):
-			target.set_advances()
+			target.set_advances()	
 
 	def set_missing_values(source, target):
 		target.is_pos = 0
@@ -201,8 +238,12 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 			target.update(get_fetch_values("Sales Invoice", 'company_address', target.company_address))
 
 	def update_item(source, target, source_parent):
-		pass
-
+		target.item_code=source.item_code
+		target.item_name=source.item_name
+		target.qty=source.qty
+		target.rate=source.rate
+		target.amount=source.amount
+	combine_all_as_mixed_chocolate=frappe.get_cached_value('Client Request CT', source_name, 'combine_all_as_mixed_chocolate')
 	doclist = get_mapped_doc("Client Request CT", source_name, {
 		"Client Request CT": {
 			"doctype": "Sales Invoice",
@@ -212,11 +253,12 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 			},
 			"validation": {
 				"docstatus": ["=", 1]
-			}
+			},
 		},
 		"Client Request CT Item": {
 			"doctype": "Sales Invoice Item",
 			"postprocess": update_item,
+			"condition": lambda doc:((frappe.get_cached_value('Item', doc.item_code, 'is_stock_item')==0 and combine_all_as_mixed_chocolate==1) or combine_all_as_mixed_chocolate==0)
 		},
 		"Sales Taxes and Charges": {
 			"doctype": "Sales Taxes and Charges",
@@ -226,7 +268,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 			"doctype": "Sales Team",
 			"add_if_empty": True
 		}
-	}, target_doc, postprocess, ignore_permissions=ignore_permissions)
+	}, target_doc,postprocess,ignore_permissions=ignore_permissions)
 
 	#change due to siwari	
 	doclist.save()

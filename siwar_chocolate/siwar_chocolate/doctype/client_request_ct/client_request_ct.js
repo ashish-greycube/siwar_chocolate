@@ -5,7 +5,7 @@
 frappe.ui.form.on('Client Request CT', {
 
 	is_tray_required:function (frm) {
-		frm.toggle_reqd('tray_no', frm.doc.is_tray_required === 1 ? 1:0);
+		frm.toggle_reqd('tray_items', frm.doc.is_tray_required === 1 ? 1:0);
 	},
 	
 	validate:function (frm) {
@@ -30,14 +30,9 @@ frappe.ui.form.on('Client Request CT', {
 			frm.trigger('update_available_tray_list');
 		}		
 	},	
-	
-	tray_no: function(frm) {
-		if (frm.doc.delivery_date){
-			frm.trigger('update_available_tray_list');
-		}		
-	},
 	update_available_tray_list: function(frm) {
-		frm.set_query('tray_no', function(doc, cdt, cdn) {
+
+		frm.set_query('item_code', 'tray_items',function(doc, cdt, cdn) {
 			return {
 				query: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_available_tray_list",
 				filters: {
@@ -47,6 +42,14 @@ frappe.ui.form.on('Client Request CT', {
 		});	
 	}	
 });
+
+frappe.ui.form.on('Client Request CT Tray Item', {
+	item_code: function(frm) {
+		if (frm.doc.delivery_date){
+			frm.trigger('update_available_tray_list');
+		}		
+	},
+})
 
 erpnext.selling.ClientRequestController = erpnext.selling.SellingController.extend({
 	onload: function(doc, dt, dn) {
@@ -67,8 +70,9 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 		}
 		
 		if(flt(doc.docstatus)==1) {
-			if (doc.tray_issue_stock_entry && doc.tray_return_stock_entry===undefined && doc.is_tray_required===1) {
-				this.frm.add_custom_button(__('Tray Return'), () => this.make_tray_return(doc), __('Create'));
+			var show_tray_return_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0)
+			if (doc.tray_issue_stock_entry && show_tray_return_dialog && show_tray_return_dialog.length && doc.is_tray_required===1) {
+				this.frm.add_custom_button(__('Tray Return'), () => this.tray_return_dialog(doc), __('Create'));
 			}
 
 			if (doc.insurance_amount>0 && doc.tray_status==='Available' && doc.is_tray_required===1) {
@@ -76,14 +80,14 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			}
 
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
-			if (doc.stock_entry == undefined) {
+			if (doc.stock_entry == undefined || doc.stock_entry == '') {
 				this.frm.add_custom_button(__("Issue Material"),() => this.make_stock_entry(this.frm), __('Create'));
 			}
 
 			if (doc.stock_entry) {
 				frappe.db.get_value('Stock Entry', doc.stock_entry, 'docstatus')
 				.then(r => {
-					if (r.message.docstatus==1 && doc.sales_invoice == undefined) {
+					if (r.message.docstatus==1 && (doc.sales_invoice == undefined || doc.sales_invoice == '')) {
 						this.frm.add_custom_button(__('Invoice'), () => me.make_sales_invoice(), __('Create'));
 					}
 				})			
@@ -109,6 +113,100 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			frm: this.frm
 		})
 	},
+	tray_return_dialog: function() {
+		var me = this;
+		var show_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0);
+
+		if (show_dialog && show_dialog.length) {
+
+			this.data = [];
+			const dialog = new frappe.ui.Dialog({
+				title: __("Tick Checkbox and enter qty for return."),
+				fields: [
+					{
+						fieldname: "tray_returns", fieldtype: "Table", label: __("Returns"),
+						data: this.data, in_place_edit: true,
+						get_data: () => {
+							return this.data;
+						},
+						fields: [{
+							fieldtype:'Check',
+							in_list_view: 1,
+							label: __("Return?"),
+							fieldname: 'to_be_returned',
+							reqd: 1,
+							default:1,
+							columns:2
+
+						},
+							{
+							fieldtype:'Link',
+							options: 'Item',
+							fieldname:"item_code",
+							label: __("Tray Code"),
+							in_list_view: 1,
+							read_only: 1,
+							columns:2
+							// hidden: 1
+						}, {
+							fieldtype:'Data',
+							fieldname:"item_name",
+							label: __("Tray Name"),
+							in_list_view: 1,
+							read_only: 1,
+							columns:4
+						}, {
+							fieldtype:'Float',
+							in_list_view: 1,
+							label: __("Return Qty"),
+							fieldname: 'return_requested_qty',
+							columns:2
+
+						}]
+					},
+				],
+				primary_action: function() {
+					const args = dialog.get_values()["tray_returns"];
+
+					args.forEach(d => {
+						if (d.to_be_returned==1){
+						frappe.model.set_value("Client Request CT Tray Item", d.docname,
+							"return_requested_qty", d.return_requested_qty);
+						cur_frm.save()
+						}
+					});
+
+					me.make_tray_return(cur_frm.doc);
+					dialog.hide();
+				},
+				primary_action_label: __('Return')
+			});
+
+			this.frm.doc.tray_items.forEach(d => {
+				if (d.qty-d.tray_returned_qty>0) {
+					dialog.fields_dict.tray_returns.df.data.push({
+						'docname': d.name,
+						'to_be_returned':1,
+						'item_code': d.item_code,
+						'item_name': d.item_name,
+						'return_requested_qty': d.qty-d.tray_returned_qty,
+					});
+				}
+			});
+
+			this.data = dialog.fields_dict.tray_returns.df.data;
+			dialog.fields_dict.tray_returns.grid.refresh();
+			dialog.show()
+			setTimeout(() => {
+				$('.form-group[data-fieldname="tray_returns"] .grid-add-row').hide()
+				$('.form-group[data-fieldname="tray_returns"] .grid-remove-rows').hide()
+			}, 250);
+			
+			
+		} else {
+			// this.reconcile_payment_entries();
+		}
+	},	
 	make_tray_return: function(doc) {
 		cur_frm.call({
 			method: "make_tray_return",
@@ -116,7 +214,9 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			callback: function(r) {
 				if (r.message) {
 				let stock_entry=r.message	;
-				frappe.msgprint(__("Stock Entry {0} is done. Tray is 'Available' now.", [stock_entry]));
+				frappe.msgprint(__("Stock Entry {0} is done. Tray is {1} now.", 
+				['<a href="#Form/Stock Entry/'+stock_entry+'">' + stock_entry+ '</a>',doc.tray_status]
+				));
 				}
 			}
 		});		
