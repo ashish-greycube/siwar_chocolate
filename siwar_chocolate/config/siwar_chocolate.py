@@ -13,6 +13,11 @@ def get_data():
                             "type": "doctype",
                             "name": "Client Request CT",
                             "label": _("Client Request"),
+                        },                         
+                        {
+                            "type": "doctype",
+                            "name": "Siwar Settings",
+                            "label": _("Siwar Settings"),
                         }
                         
                     ]

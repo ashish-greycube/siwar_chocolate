@@ -33,13 +33,10 @@
   "total",
   "amended_from",
   "reference",
-  "tray_status",
   "sales_invoice",
   "material_request",
   "column_break_27",
   "stock_entry",
-  "tray_issue_stock_entry",
-  "tray_return_stock_entry",
   "internal_use",
   "naming_series",
   "currency",
@@ -291,15 +288,6 @@
    "label": "Phone No"
   },
   {
-   "depends_on": "eval:doc.is_tray_required == 1",
-   "fieldname": "tray_status",
-   "fieldtype": "Select",
-   "label": "Tray Status",
-   "no_copy": 1,
-   "options": "\nBooked\nAvailable\nPartial Available\nWith Client",
-   "read_only": 1
-  },
-  {
    "allow_on_submit": 1,
    "fieldname": "shipment_type",
    "fieldtype": "Select",
@@ -315,22 +303,6 @@
   {
    "fieldname": "column_break_27",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "tray_issue_stock_entry",
-   "fieldtype": "Data",
-   "label": "Stock Entry : Tray Issue",
-   "no_copy": 1,
-   "options": "Stock Entry"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "tray_return_stock_entry",
-   "fieldtype": "Table MultiSelect",
-   "label": "Stock Entry : Tray Return",
-   "no_copy": 1,
-   "options": "Client Request Tray Return Stock Entry",
-   "read_only": 1
   },
   {
    "fieldname": "material_request",
@@ -353,6 +325,7 @@
    "depends_on": "eval:doc.is_tray_required ==1",
    "fieldname": "tray_items",
    "fieldtype": "Table",
+   "label": "Tray Item",
    "options": "Client Request CT Tray Item"
   },
   {
@@ -378,7 +351,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2021-03-18 17:53:23.652807",
+ "modified": "2021-04-23 08:59:00.004980",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

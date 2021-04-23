@@ -28,6 +28,7 @@ frappe.ui.form.on('Client Request CT', {
 	delivery_date: function(frm) {
 		if (frm.doc.delivery_date){
 			frm.trigger('update_available_tray_list');
+			frm.set_value('tray_items',[])
 		}		
 	},	
 	update_available_tray_list: function(frm) {
@@ -44,11 +45,38 @@ frappe.ui.form.on('Client Request CT', {
 });
 
 frappe.ui.form.on('Client Request CT Tray Item', {
-	item_code: function(frm) {
+	item_code: function(frm, cdt, cdn) {
 		if (frm.doc.delivery_date){
-			frm.trigger('update_available_tray_list');
-		}		
+			cur_frm.trigger('update_available_tray_list');
+		}	
+		var row = locals[cdt][cdn];	
+		if (frm.doc.delivery_date && row.item_code){
+			return frappe.call({
+				doc: frm.doc,
+				method: "get_tray_qty_details",
+				args: {
+					"item_code": row.item_code,
+					"qty": row.qty
+
+				},
+				callback: function(r) {
+					console.log(r)
+					row = locals[cdt][cdn];
+					$.extend(row, r.message);
+					refresh_field("tray_items");
+				},
+				freeze: true
+			});			
+		}
 	},
+	qty: function(frm, cdt, cdn) {
+		var row = locals[cdt][cdn];	
+		if (row.qty && row.available_qty && (row.qty>row.available_qty)){
+			var msg = __("Table: Tray Item <br> For Row : {0} , Tray : {2} qty entered is : <b>{3}</b>. <br> It should be less than available qty <b>{4}</b>.",
+			[row.idx, __(row.doctype), row.item_code, row.qty,row.available_qty])
+			frappe.throw(msg);			
+		}
+	}
 })
 
 erpnext.selling.ClientRequestController = erpnext.selling.SellingController.extend({
@@ -70,14 +98,20 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 		}
 		
 		if(flt(doc.docstatus)==1) {
-			var show_tray_return_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0)
-			if (doc.tray_issue_stock_entry && show_tray_return_dialog && show_tray_return_dialog.length && doc.is_tray_required===1) {
-				this.frm.add_custom_button(__('Tray Return'), () => this.tray_return_dialog(doc), __('Create'));
-			}
+			// var show_tray_return_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0)
+			// if (doc.tray_issue_stock_entry && show_tray_return_dialog && show_tray_return_dialog.length && doc.is_tray_required===1) {
+			// 	this.frm.add_custom_button(__('Tray Return'), () => this.tray_return_dialog(doc), __('Create'));
+			// }
+			frappe.db.get_single_value('Siwar Settings', 'booked_days_after')
+			.then(booked_days_after => {
 
-			if (doc.insurance_amount>0 && doc.tray_status==='Available' && doc.is_tray_required===1) {
-				this.frm.add_custom_button(__('Return Insurance Amount'), () => this.make_jv_for_insurance_amount(doc), __('Create'));
-			}
+				let release_date=frappe.datetime.add_days(doc.delivery_date,booked_days_after);
+				let todays_date=frappe.datetime.get_today()
+				if (doc.insurance_amount>0 && todays_date>release_date && doc.is_tray_required===1) {
+					this.frm.add_custom_button(__('Return Insurance Amount'), () => this.make_jv_for_insurance_amount(doc), __('Create'));
+				}				
+			})			
+
 
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
 			if (doc.stock_entry == undefined || doc.stock_entry == '') {
@@ -113,114 +147,114 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			frm: this.frm
 		})
 	},
-	tray_return_dialog: function() {
-		var me = this;
-		var show_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0);
+	// tray_return_dialog: function() {
+	// 	var me = this;
+	// 	var show_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0);
 
-		if (show_dialog && show_dialog.length) {
+	// 	if (show_dialog && show_dialog.length) {
 
-			this.data = [];
-			const dialog = new frappe.ui.Dialog({
-				title: __("Tick Checkbox and enter qty for return."),
-				fields: [
-					{
-						fieldname: "tray_returns", fieldtype: "Table", label: __("Returns"),
-						data: this.data, in_place_edit: true,
-						get_data: () => {
-							return this.data;
-						},
-						fields: [{
-							fieldtype:'Check',
-							in_list_view: 1,
-							label: __("Return?"),
-							fieldname: 'to_be_returned',
-							reqd: 1,
-							default:1,
-							columns:2
+	// 		this.data = [];
+	// 		const dialog = new frappe.ui.Dialog({
+	// 			title: __("Tick Checkbox and enter qty for return."),
+	// 			fields: [
+	// 				{
+	// 					fieldname: "tray_returns", fieldtype: "Table", label: __("Returns"),
+	// 					data: this.data, in_place_edit: true,
+	// 					get_data: () => {
+	// 						return this.data;
+	// 					},
+	// 					fields: [{
+	// 						fieldtype:'Check',
+	// 						in_list_view: 1,
+	// 						label: __("Return?"),
+	// 						fieldname: 'to_be_returned',
+	// 						reqd: 1,
+	// 						default:1,
+	// 						columns:2
 
-						},
-							{
-							fieldtype:'Link',
-							options: 'Item',
-							fieldname:"item_code",
-							label: __("Tray Code"),
-							in_list_view: 1,
-							read_only: 1,
-							columns:2
-							// hidden: 1
-						}, {
-							fieldtype:'Data',
-							fieldname:"item_name",
-							label: __("Tray Name"),
-							in_list_view: 1,
-							read_only: 1,
-							columns:4
-						}, {
-							fieldtype:'Float',
-							in_list_view: 1,
-							label: __("Return Qty"),
-							fieldname: 'return_requested_qty',
-							columns:2
+	// 					},
+	// 						{
+	// 						fieldtype:'Link',
+	// 						options: 'Item',
+	// 						fieldname:"item_code",
+	// 						label: __("Tray Code"),
+	// 						in_list_view: 1,
+	// 						read_only: 1,
+	// 						columns:2
+	// 						// hidden: 1
+	// 					}, {
+	// 						fieldtype:'Data',
+	// 						fieldname:"item_name",
+	// 						label: __("Tray Name"),
+	// 						in_list_view: 1,
+	// 						read_only: 1,
+	// 						columns:4
+	// 					}, {
+	// 						fieldtype:'Float',
+	// 						in_list_view: 1,
+	// 						label: __("Return Qty"),
+	// 						fieldname: 'return_requested_qty',
+	// 						columns:2
 
-						}]
-					},
-				],
-				primary_action: function() {
-					const args = dialog.get_values()["tray_returns"];
+	// 					}]
+	// 				},
+	// 			],
+	// 			primary_action: function() {
+	// 				const args = dialog.get_values()["tray_returns"];
 
-					args.forEach(d => {
-						if (d.to_be_returned==1){
-						frappe.model.set_value("Client Request CT Tray Item", d.docname,
-							"return_requested_qty", d.return_requested_qty);
-						cur_frm.save()
-						}
-					});
+	// 				args.forEach(d => {
+	// 					if (d.to_be_returned==1){
+	// 					frappe.model.set_value("Client Request CT Tray Item", d.docname,
+	// 						"return_requested_qty", d.return_requested_qty);
+	// 					cur_frm.save()
+	// 					}
+	// 				});
 
-					me.make_tray_return(cur_frm.doc);
-					dialog.hide();
-				},
-				primary_action_label: __('Return')
-			});
+	// 				me.make_tray_return(cur_frm.doc);
+	// 				dialog.hide();
+	// 			},
+	// 			primary_action_label: __('Return')
+	// 		});
 
-			this.frm.doc.tray_items.forEach(d => {
-				if (d.qty-d.tray_returned_qty>0) {
-					dialog.fields_dict.tray_returns.df.data.push({
-						'docname': d.name,
-						'to_be_returned':1,
-						'item_code': d.item_code,
-						'item_name': d.item_name,
-						'return_requested_qty': d.qty-d.tray_returned_qty,
-					});
-				}
-			});
+	// 		this.frm.doc.tray_items.forEach(d => {
+	// 			if (d.qty-d.tray_returned_qty>0) {
+	// 				dialog.fields_dict.tray_returns.df.data.push({
+	// 					'docname': d.name,
+	// 					'to_be_returned':1,
+	// 					'item_code': d.item_code,
+	// 					'item_name': d.item_name,
+	// 					'return_requested_qty': d.qty-d.tray_returned_qty,
+	// 				});
+	// 			}
+	// 		});
 
-			this.data = dialog.fields_dict.tray_returns.df.data;
-			dialog.fields_dict.tray_returns.grid.refresh();
-			dialog.show()
-			setTimeout(() => {
-				$('.form-group[data-fieldname="tray_returns"] .grid-add-row').hide()
-				$('.form-group[data-fieldname="tray_returns"] .grid-remove-rows').hide()
-			}, 250);
+	// 		this.data = dialog.fields_dict.tray_returns.df.data;
+	// 		dialog.fields_dict.tray_returns.grid.refresh();
+	// 		dialog.show()
+	// 		setTimeout(() => {
+	// 			$('.form-group[data-fieldname="tray_returns"] .grid-add-row').hide()
+	// 			$('.form-group[data-fieldname="tray_returns"] .grid-remove-rows').hide()
+	// 		}, 250);
 			
 			
-		} else {
-			// this.reconcile_payment_entries();
-		}
-	},	
-	make_tray_return: function(doc) {
-		cur_frm.call({
-			method: "make_tray_return",
-			doc: doc,
-			callback: function(r) {
-				if (r.message) {
-				let stock_entry=r.message	;
-				frappe.msgprint(__("Stock Entry {0} is done. Tray is {1} now.", 
-				['<a href="#Form/Stock Entry/'+stock_entry+'">' + stock_entry+ '</a>',doc.tray_status]
-				));
-				}
-			}
-		});		
-	},
+	// 	} else {
+	// 		// this.reconcile_payment_entries();
+	// 	}
+	// },	
+	// make_tray_return: function(doc) {
+	// 	cur_frm.call({
+	// 		method: "make_tray_return",
+	// 		doc: doc,
+	// 		callback: function(r) {
+	// 			if (r.message) {
+	// 			let stock_entry=r.message	;
+	// 			frappe.msgprint(__("Stock Entry {0} is done. Tray is {1} now.", 
+	// 			['<a href="#Form/Stock Entry/'+stock_entry+'">' + stock_entry+ '</a>',doc.tray_status]
+	// 			));
+	// 			}
+	// 		}
+	// 	});		
+	// },
 	make_payment_entry: function() {
 		return frappe.call({
 			method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",

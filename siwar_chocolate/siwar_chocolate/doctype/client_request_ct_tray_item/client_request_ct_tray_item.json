@@ -7,17 +7,22 @@
  "field_order": [
   "item_code",
   "item_name",
+  "description",
+  "available_qty",
   "qty",
-  "tray_returned_qty",
-  "return_requested_qty"
+  "column_break_5",
+  "total_qty",
+  "already_booked_qty",
+  "booked_from_date",
+  "booked_to_date"
  ],
  "fields": [
   {
-   "columns": 8,
+   "columns": 6,
    "fieldname": "item_code",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Item",
+   "label": "Tray Item",
    "options": "Item",
    "reqd": 1
   },
@@ -26,7 +31,8 @@
    "fetch_from": "item.item_name",
    "fieldname": "item_name",
    "fieldtype": "Data",
-   "label": "Item Name"
+   "label": "Tray Item Name",
+   "read_only": 1
   },
   {
    "allow_on_submit": 1,
@@ -34,26 +40,55 @@
    "fieldname": "qty",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Qty",
+   "label": "Qty To Book",
    "reqd": 1
   },
   {
-   "allow_on_submit": 1,
-   "fieldname": "tray_returned_qty",
+   "fieldname": "total_qty",
    "fieldtype": "Float",
-   "label": "Tray Returned Qty",
+   "label": "Total Qty",
    "read_only": 1
   },
   {
-   "allow_on_submit": 1,
-   "fieldname": "return_requested_qty",
+   "columns": 2,
+   "fieldname": "available_qty",
    "fieldtype": "Float",
-   "label": "Return Requested Qty",
+   "in_list_view": 1,
+   "label": "Available Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "already_booked_qty",
+   "fieldtype": "Float",
+   "label": "Already Booked Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "booked_from_date",
+   "fieldtype": "Date",
+   "label": "Booking From Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "booked_to_date",
+   "fieldtype": "Date",
+   "label": "Booking To Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "item.description",
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description",
    "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2021-03-16 18:04:47.290058",
+ "modified": "2021-04-23 08:53:24.299043",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT Tray Item",

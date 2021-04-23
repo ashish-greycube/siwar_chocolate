@@ -94,16 +94,16 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {
-	"daily": [
-		"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
-	],
-    "cron": {
-        "00 05 * * *": [
-            "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
-        ]
-    }	
-}
+# scheduler_events = {
+# 	"daily": [
+# 		"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
+# 	],
+#     "cron": {
+#         "00 05 * * *": [
+#             "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_tray_status"
+#         ]
+#     }	
+# }
 
 
 # scheduler_events = {
