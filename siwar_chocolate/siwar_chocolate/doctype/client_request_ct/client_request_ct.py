@@ -147,14 +147,13 @@ class ClientRequestCT(Document):
 		available_qty=0
 		booked_from_date=add_days(delivery_date,-cint(pre_days))
 		booked_to_date=add_days(delivery_date,cint(post_days))
-		booked_tray_list=frappe.db.get_all('Client Request CT Tray Item', filters={
-    										'docstatus': ['=',1],
-											'item_code': ['=', item],
-											'booked_from_date':['=', booked_from_date],
-											'booked_to_date':['=', booked_to_date],
-											},
-										fields=['qty'],
-										as_list=False)
+		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
+							on Trays.parent=CR.name
+							where 
+							CR.docstatus=1 
+							and Trays.item_code=%s
+							and CR.delivery_date between %s and %s
+				''', (item,booked_from_date, booked_to_date), as_dict=True)
 
 		if booked_tray_list:
 			for tray in booked_tray_list:
@@ -166,10 +165,7 @@ class ClientRequestCT(Document):
 			 'total_qty'  : actual_qty or 0,
 			 'already_booked_qty':already_booked_qty or 0,
 			 'available_qty':available_qty,
-			 'qty'			: args.get("qty") or 1,
-			 'booked_from_date':booked_from_date,
-			 'booked_to_date':booked_to_date
-
+			 'qty'			: args.get("qty") or 1
 		}
 
 		return ret_item			
@@ -217,14 +213,14 @@ def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,
 		already_booked_qty=0
 		available_qty=0
 
-		booked_tray_list=frappe.db.get_all('Client Request CT Tray Item', filters={
-    										'docstatus': ['=',1],
-											'item_code': ['=', item.item_code],
-											'booked_from_date':['=', booked_from_date],
-											'booked_to_date':['=', booked_to_date],
-											},
-										fields=['qty'],
-										as_list=False)
+		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
+							on Trays.parent=CR.name
+							where 
+							CR.docstatus=1 
+							and Trays.item_code=%s
+							and CR.delivery_date between %s and %s
+				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)
+
 
 		if booked_tray_list:
 			for tray in booked_tray_list:
@@ -428,14 +424,18 @@ def make_jv_entry(dt,dn):
 	account_amt_list.append({
 		"account": default_cash_account,
 		"debit_in_account_currency": insurance_amount,
+		"reference_type":'Client Request CT',
+		"reference_name":dn
 		})
 	account_amt_list.append({
 		"account": default_receivable_account,
 		"credit_in_account_currency": insurance_amount,
 		"party_type": "Customer",
-		"party":customer,
+		"party":customer
 		})
 	journal_entry.set("accounts", account_amt_list)
+	journal_entry.save(ignore_permissions=True)
+	frappe.db.set_value(dt, dn, 'journal_entry', journal_entry.name)
 	return journal_entry.as_dict()	
 
 @frappe.whitelist()

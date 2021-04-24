@@ -25,6 +25,12 @@ def get_data():
                 {
                     "label": _("Reports"),
                     "items": [
+                              {
+                                        "type": "report",
+                                        "name": "Tray availability",
+                                        "is_query_report": True,
+                                        "doctype": "Client Request CT"
+                                },                        
                                 {
                                         "type": "report",
                                         "name": "Siwar Sales",

@@ -102,15 +102,14 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			// if (doc.tray_issue_stock_entry && show_tray_return_dialog && show_tray_return_dialog.length && doc.is_tray_required===1) {
 			// 	this.frm.add_custom_button(__('Tray Return'), () => this.tray_return_dialog(doc), __('Create'));
 			// }
-			frappe.db.get_single_value('Siwar Settings', 'booked_days_after')
-			.then(booked_days_after => {
 
-				let release_date=frappe.datetime.add_days(doc.delivery_date,booked_days_after);
-				let todays_date=frappe.datetime.get_today()
-				if (doc.insurance_amount>0 && todays_date>release_date && doc.is_tray_required===1) {
+
+				// let release_date=frappe.datetime.add_days(doc.delivery_date,booked_days_after);
+				// let todays_date=frappe.datetime.get_today()
+				if (doc.insurance_amount>0 && doc.is_tray_required===1 && (doc.journal_entry==''||doc.journal_entry===undefined)) {
 					this.frm.add_custom_button(__('Return Insurance Amount'), () => this.make_jv_for_insurance_amount(doc), __('Create'));
 				}				
-			})			
+					
 
 
 			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
@@ -137,7 +136,15 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 			},
 			callback: function(r) {
 				var doclist = frappe.model.sync(r.message);
-				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+				let url_list = '<a href="#Form/'+doclist[0].doctype+'/'+ doclist[0].name+'" target="_blank">' + doclist[0].name + '</a><br>'
+				frappe.msgprint({
+					title: __('Returned Insurance Amount'),
+					indicator: 'green',
+					message: __(url_list)
+				})	
+				setTimeout(() => {
+				window.open("#Form/"+doclist[0].doctype+"/" + doclist[0].name)
+				}, 500);			
 			}
 		});
 	},
