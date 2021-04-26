@@ -56,15 +56,6 @@ def execute(filters=None):
 							and CR.delivery_date between %s and %s
 				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)
 
-		# booked_tray_list=frappe.db.get_all('Client Request CT Tray Item', filters={
-    	# 									'docstatus': ['=',1],
-		# 									'item_code': ['=', item.item_code],
-		# 									'booked_from_date':['<', booked_from_date],
-		# 									'booked_to_date':['=', booked_to_date],
-		# 									},
-		# 								fields=['qty'],
-		# 								as_list=False)
-
 		if booked_tray_list:
 			for tray in booked_tray_list:
 				already_booked_qty=tray['qty']+already_booked_qty
