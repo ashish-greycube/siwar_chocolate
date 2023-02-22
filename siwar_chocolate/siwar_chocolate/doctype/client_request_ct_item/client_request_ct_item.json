@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2020-02-12 09:21:12.594470",
  "description": " Client Request CT Item ",
  "doctype": "DocType",
@@ -6,10 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
+  "description",
   "item_name",
   "qty",
   "rate",
   "amount",
+  "remarks",
   "internal_use",
   "conversion_factor",
   "stock_uom",
@@ -79,10 +82,30 @@
    "fieldname": "item_name",
    "fieldtype": "Data",
    "label": "Item Name"
+  },
+  {
+   "fetch_from": "item.description",
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Description"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "allow_on_submit": 1,
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "\u0645\u0644\u0627\u062d\u0638\u0627\u062a",
+   "report_hide": 1
   }
  ],
  "istable": 1,
- "modified": "2020-07-18 07:33:57.419787",
+ "links": [],
+ "modified": "2023-02-22 12:44:01.895569",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT Item",

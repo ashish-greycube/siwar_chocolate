@@ -1,0 +1,3 @@
+siwar_chocolate.patches.v0_0.drop_client_request_CT_custom_fields
+siwar_chocolate.patches.v0_0.transfer_client_request_CT_select_to_checkbox_fields
+siwar_chocolate.patches.v0_0.drop_client_request_CT_select_fields

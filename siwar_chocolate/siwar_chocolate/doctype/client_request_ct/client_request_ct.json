@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "naming_series:",
  "creation": "2020-02-11 07:29:10.549347",
  "doctype": "DocType",
@@ -8,19 +9,60 @@
  "field_order": [
   "customer",
   "phone_no",
+  "phone_no2",
   "assign_to",
   "client_request_date",
-  "client_request_type",
+  "\u0623\u0648\u0642\u0627\u062a_\u0627\u0644\u062a\u0648\u0635\u064a\u0644",
+  "customer_city_cf",
+  "customer_district_cf",
   "selling_price_list",
   "remarks",
   "column_break_7",
   "status",
   "shipment_type",
+  "supervision_status",
   "delivery_date",
   "delivery_time",
   "pickup_date_time",
-  "insurance_amount",
-  "advance_amount",
+  "\u0645\u0644\u0627\u062d\u0638\u0627\u062a",
+  "client_request_type_section",
+  "showroom_crt",
+  "column_break_dg25k",
+  "occasion_section_crt",
+  "column_break_mlidp",
+  "customer_service_crt",
+  "column_break_aed0p",
+  "in_call_crt",
+  "column_break_3z2ep",
+  "not_confirmed_crt",
+  "shipment_type_section",
+  "delivery",
+  "column_break_phspu",
+  "pickup",
+  "supervision_status_section",
+  "supervision",
+  "column_break_r7k3z",
+  "no_supervision",
+  "pickup_delivery_times_section",
+  "5_to_7_30_pm",
+  "column_break_xonkn",
+  "4_pm",
+  "column_break_k5kos",
+  "5_pm",
+  "customer_city_section",
+  "dammam_city",
+  "column_break_nw6nz",
+  "al_medina",
+  "column_break_tn0wr",
+  "jadda",
+  "column_break_nvmll",
+  "riyadh",
+  "section_break_ch0m8",
+  "\u0635\u0648\u0627\u0646\u064a_\u062a\u0634\u0648\u0643\u0644\u062a",
+  "\u0635\u0648\u0627\u0646\u064a_\u0627\u0644\u0645\u0627\u0644\u062d",
+  "column_break_xojdp",
+  "\u0635\u0648\u0627\u0646\u064a_vip",
+  "\u0635\u0648\u0627\u0646\u064a_\u062a\u0627\u0628\u0639\u0647_\u0644\u0644\u0639\u0645\u064a\u0644",
   "approximate_amount",
   "tray_details_section",
   "is_tray_required",
@@ -113,17 +155,6 @@
    "reqd": 1
   },
   {
-   "allow_on_submit": 1,
-   "fieldname": "insurance_amount",
-   "fieldtype": "Currency",
-   "label": "Insurance Amount"
-  },
-  {
-   "fieldname": "advance_amount",
-   "fieldtype": "Currency",
-   "label": "Advance Amount"
-  },
-  {
    "fieldname": "approximate_amount",
    "fieldtype": "Currency",
    "label": "Approximate Amount"
@@ -211,7 +242,6 @@
    "fieldtype": "Data",
    "label": "Stock Entry Reference",
    "no_copy": 1,
-   "options": "Stock Entry",
    "read_only": 1
   },
   {
@@ -220,7 +250,6 @@
    "fieldtype": "Data",
    "label": "Sales Invoice Reference",
    "no_copy": 1,
-   "options": "Sales Invoice",
    "read_only": 1
   },
   {
@@ -313,7 +342,6 @@
    "fieldtype": "Data",
    "label": "Material Request",
    "no_copy": 1,
-   "options": "Material Request",
    "read_only": 1
   },
   {
@@ -340,13 +368,6 @@
    "label": "Client Request Date"
   },
   {
-   "fieldname": "client_request_type",
-   "fieldtype": "Select",
-   "label": "Client Request Type",
-   "options": "\nC.K\nSiwar",
-   "reqd": 1
-  },
-  {
    "allow_on_submit": 1,
    "default": "0",
    "description": "when sales invoice gets created",
@@ -360,12 +381,265 @@
    "fieldtype": "Data",
    "label": "Returned Insurance JV Reference",
    "no_copy": 1,
-   "options": "Journal Entry",
    "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "bold": 1,
+   "fetch_from": "customer.phone_no2",
+   "fieldname": "phone_no2",
+   "fieldtype": "Data",
+   "label": "Phone No2",
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "\u0623\u0648\u0642\u0627\u062a_\u0627\u0644\u062a\u0648\u0635\u064a\u0644",
+   "fieldtype": "Select",
+   "label": "Picup/Delivery times",
+   "options": "\npickup\n\u0627\u0644\u0633\u0627\u0639\u0629 10 \u0635\u0628\u0627\u062d\u0627\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 11 \u0635\u0628\u0627\u062d\u0627\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 12 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 1 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 2 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 3 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 4 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 5 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 6 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 7 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 8 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 9 \u0645\u0633\u0627\u0621\u064b\n\u0627\u0644\u0633\u0627\u0639\u0629 10 \u0645\u0633\u0627\u0621\u064b\n\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 5:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 7:30 \u0645\u0633\u0627\u0621\u064b\n\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 4:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 8:00 \u0645\u0633\u0627\u0621\u064b\n\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 9:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 12:00 \u0645\u0633\u0627\u0621\u064b",
+   "reqd": 1,
+   "translatable": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "customer_city_cf",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer City CF",
+   "options": "\n\u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a UAE\n\u0642\u0637\u0631  Qatar\n\u0627\u0644\u0628\u062d\u0631\u064a\u0646  Bahrain\n\u0627\u0644\u0643\u0648\u064a\u062a  Kuwait\n\u0627\u0644\u0631\u064a\u0627\u0636 Riyadh\n\u062c\u062f\u0629 jadda\n\u062d\u0641\u0631 \u0627\u0644\u0628\u0627\u0637\u0646 Hafr Albaten\n\u0648\u0627\u062f\u064a \u0627\u0644\u062f\u0648\u0627\u0633\u0631 Wadi Aldawaser\n\u0627\u0644\u062f\u0645\u0627\u0645 Dammam\n\u0623\u0628\u0647\u0627 Abha\n\u0627\u0644\u0642\u0635\u064a\u0645 Qassim\n\u0645\u0643\u0629 \u0627\u0644\u0645\u0643\u0631\u0645\u0629\u00a0Makkah\n\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0645\u0646\u0648\u0631\u0629 Al-Medina\n\u0627\u0644\u062e\u0631\u062c Kharj\n\u0627\u0644\u0628\u0627\u062d\u0629 Al-Baha\n\u0627\u0644\u0623\u062d\u0633\u0627\u0621 Al Ahsa\n\u0646\u062c\u0631\u0627\u0646 Najran\n\u0627\u0644\u062e\u0628\u0631 Khobar\n\u0627\u0644\u062c\u0648\u0641 Al-Jouf\n\u062c\u0627\u0632\u0627\u0646 Jazan\n\u0639\u0633\u064a\u0631 Aseer.\n\u062a\u0628\u0648\u0643 Tabouk\n\u062d\u0627\u0626\u0644 Hail\n\u0627\u0644\u062f\u0648\u0627\u062f\u0645\u064a Dawadmi\n\u0633\u0644\u064a\u0644 Saleel\n\u0639\u0641\u064a\u0641 Afeef\n\u0627\u0644\u062f\u0631\u0639\u064a\u0629 Diriyah\n\u063a\u0627\u062a Ghat\n\u0627\u0644\u0632\u0641\u0644\u064a Zulfi\n\u0645\u0627\u0631\u0627\u062a Marat\n\u0627\u0644\u0645\u062c\u0645\u0639\u0629 Majmaah\n\u0635\u0627\u062f\u0642 Thadeq\n\u0627\u0644\u0634\u0627\u0631\u0642\u0629 Shaqraa\n\u0627\u0644\u0637\u0627\u0626\u0641 Taef\n\u0627\u0644\u0642\u0637\u064a\u0641 Qateef\n\u0627\u0644\u062c\u0628\u064a\u0644 Jubail\n\u0627\u0644\u0628\u0642\u064a\u0642 Beqaiq\n\u064a\u0646\u0628\u0639 Yanbu\n\u0628\u062f\u0631 Badr",
+   "print_hide": 1,
+   "reqd": 1,
+   "translatable": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "customer_district_cf",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Customer District CF",
+   "options": "\n\u0642\u0627\u0639\u0629 \u0645\u0646\u0627\u0633\u0628\u0627\u062a \u0628\u0627\u0644\u0631\u064a\u0627\u0636\nSiwar\noutside Riyadh\n\u0627\u0644\u0631\u0628\u064a\u0639\n\u0627\u0644\u0646\u062f\u0649\n\u0627\u0644\u062f\u0631\u0639\u064a\u0647\n\u0627\u0644\u0639\u0645\u0627\u0631\u064a\u0629\n\u0627\u0644\u0635\u062d\u0627\u0641\u0629\n\u0627\u0644\u0646\u0631\u062c\u0633\n\u0627\u0644\u0639\u0627\u0631\u0636\n\u0627\u0644\u0646\u0641\u0644\n\u0627\u0644\u0639\u0642\u064a\u0642\n\u0627\u0644\u0648\u0627\u062f\u064a\n\u0627\u0644\u063a\u062f\u064a\u0631\n\u0627\u0644\u064a\u0627\u0633\u0645\u064a\u0646\n\u0627\u0644\u0641\u0644\u0627\u062d\n\u0628\u0646\u0628\u0627\u0646\n\u0627\u0644\u0642\u064a\u0631\u0648\u0627\u0646\n\u062d\u0637\u064a\u0646\n\u0627\u0644\u0645\u0644\u0642\u0627\n\u0627\u0644\u0631\u0648\u0636\u0629\n\u0627\u0644\u0631\u0645\u0627\u0644\n\u0627\u0644\u0645\u0648\u0646\u0633\u064a\u0629\n\u0642\u0631\u0637\u0628\u0629\n\u0627\u0644\u062c\u0646\u0627\u062f\u0631\u064a\u0629\n\u0627\u0644\u0642\u0627\u062f\u0633\u064a\u0629\n\u0627\u0644\u064a\u0631\u0645\u0648\u0643\n\u063a\u0631\u0646\u0627\u0637\u0629\n\u0623\u0634\u0628\u064a\u0644\u064a\u0629\n\u0627\u0644\u062d\u0645\u0631\u0627\u0621\n\u0627\u0644\u0645\u0639\u064a\u0632\u0644\u064a\u0629\n\u0627\u0644\u062e\u0644\u064a\u062c\n\u0627\u0644\u0645\u0644\u0643 \u0641\u064a\u0635\u0644\n\u0627\u0644\u0642\u062f\u0633\n\u0627\u0644\u0646\u0647\u0636\u0629\n\u0627\u0644\u0623\u0646\u062f\u0644\u0633\n\u0627\u0644\u0639\u0644\u064a\u0627\n\u0627\u0644\u0633\u0644\u064a\u0645\u0627\u0646\u064a\u0629\n\u0627\u0644\u0645\u0644\u0643 \u0639\u0628\u062f \u0627\u0644\u0639\u0632\u064a\u0632\n\u0627\u0644\u0645\u0644\u0643 \u0639\u0628\u062f\u0627\u0644\u0644\u0647\n\u0627\u0644\u0648\u0631\u0648\u062f\n\u0635\u0644\u0627\u062d \u0627\u0644\u062f\u064a\u0646\n\u0627\u0644\u0645\u0644\u0643 \u0641\u0647\u062f\n\u0627\u0644\u0645\u0631\u0633\u0644\u0627\u062a\n\u0627\u0644\u0646\u0632\u0647\u0629\n\u0627\u0644\u0645\u063a\u0631\u0632\u0627\u062a\n\u0627\u0644\u0645\u0631\u0648\u062c\n\u0627\u0644\u0645\u0635\u064a\u0641\n\u0627\u0644\u062a\u0639\u0627\u0648\u0646\n\u0627\u0644\u0625\u0632\u062f\u0647\u0627\u0631\n\u0627\u0644\u0645\u0639\u0630\u0631\n\u0627\u0644\u0645\u062d\u0645\u062f\u064a\u0629\n\u0627\u0644\u0631\u062d\u0645\u0627\u0646\u064a\u0629\n\u0627\u0644\u0631\u0627\u0626\u062f\n\u0627\u0644\u0646\u062e\u064a\u0644\n\u0623\u0645 \u0627\u0644\u062d\u0645\u0627\u0645 \u0627\u0644\u0634\u0631\u0642\u064a\n\u0623\u0645 \u0627\u0644\u062d\u0645\u0627\u0645 \u0627\u0644\u063a\u0631\u0628\u064a\n\u0627\u0644\u0633\u0641\u0627\u0631\u0627\u062a\n\u0627\u0644\u0645\u0647\u062f\u064a\u0629\n\u0639\u0631\u0642\u0629\n\u0638\u0647\u0631\u0629 \u0644\u0628\u0646\n\u0627\u0644\u062e\u0632\u0627\u0645\u0649\n\u0627\u0644\u0646\u0633\u064a\u0645 \u0627\u0644\u0634\u0631\u0642\u064a\n\u0627\u0644\u0646\u0633\u064a\u0645 \u0627\u0644\u063a\u0631\u0628\u064a\n\u0627\u0644\u0633\u0644\u0627\u0645\n\u0627\u0644\u0631\u064a\u0627\u0646\n\u0627\u0644\u0631\u0648\u0627\u0628\u064a\n\u0627\u0644\u0646\u0638\u064a\u0645\n\u0627\u0644\u0645\u0646\u0627\u0631\n\u0627\u0644\u0646\u062f\u0648\u0629\n\u062c\u0631\u064a\u0631\n\u0627\u0644\u0631\u0628\u0648\u0629\n\u0627\u0644\u0632\u0647\u0631\u0627\u0621\n\u0627\u0644\u0635\u0641\u0627\n\u0627\u0644\u0636\u0628\u0627\u0637\n\u0627\u0644\u0645\u0644\u0632\n\u0627\u0644\u0648\u0632\u0627\u0631\u0627\u062a\n\u0627\u0644\u0641\u0627\u0631\u0648\u0642\n\u0627\u0644\u0639\u0645\u0644\n\u062b\u0644\u064a\u0645\n\u0627\u0644\u0645\u0631\u0628\u0639\n\u0627\u0644\u0641\u0648\u0637\u0629\n\u0627\u0644\u0631\u0641\u064a\u0639\u0629\n\u0627\u0644\u0647\u062f\u0627\n\u0627\u0644\u0634\u0631\u0642\u064a\u0629\n\u0627\u0644\u0646\u0627\u0635\u0631\u064a\u0629\n\u0635\u064a\u0627\u062d\n\u0627\u0644\u0648\u0634\u0627\u0645\n\u0627\u0644\u0646\u0645\u0648\u0630\u062c\u064a\u0629\n\u0627\u0644\u0645\u0639\u0630\u0631\n\u0627\u0644\u0645\u0624\u062a\u0645\u0631\u0627\u062a\n\u0627\u0644\u0628\u062f\u064a\u0639\u0629\n\u0623\u0645 \u0633\u0644\u064a\u0645\n\u0627\u0644\u0634\u0645\u064a\u0633\u064a\n\u0627\u0644\u062c\u0631\u0627\u062f\u064a\u0629\n\u0627\u0644\u0641\u0627\u062e\u0631\u064a\u0629\n\u0639\u0644\u064a\u0634\u0629\n\u0627\u0644\u0639\u0631\u064a\u062c\u0627\u0621\n\u0627\u0644\u0639\u0631\u064a\u062c\u0627\u0621 \u0627\u0644\u0648\u0633\u0637\u0649\n\u0627\u0644\u0639\u0631\u064a\u062c\u0627\u0621 \u0627\u0644\u063a\u0631\u0628\u064a\u0629\n\u0627\u0644\u062f\u0631\u064a\u0647\u0645\u064a\u0629\n\u0634\u0628\u0631\u0627\n\u0627\u0644\u0633\u0648\u064a\u062f\u064a\n\u0627\u0644\u0633\u0648\u064a\u062f\u064a \u0627\u0644\u063a\u0631\u0628\u064a\n\u0638\u0647\u0631\u0629 \u0627\u0644\u0628\u062f\u064a\u0639\u0629\n\u0633\u0644\u0637\u0627\u0646\u0629\n\u0627\u0644\u0632\u0647\u0631\u0629\n\u0648\u0627\u062f\u064a \u0644\u0628\u0646\n\u0638\u0647\u0631\u0629 \u0646\u0645\u0627\u0631\n\u062f\u064a\u0631\u0627\u0628\n\u0646\u0645\u0627\u0631\n\u0627\u0644\u062d\u0632\u0645\n\u0623\u062d\u062f\n\u0639\u0643\u0627\u0638\n\u0627\u0644\u0634\u0641\u0627\u0621\n\u0627\u0644\u0645\u0631\u0648\u0629\n\u0628\u062f\u0631\n\u0627\u0644\u0645\u0635\u0627\u0646\u0639\n\u0627\u0644\u0645\u0646\u0635\u0648\u0631\u064a\u0629\n\u0639\u0631\u064a\u0636\n\u0627\u0644\u0639\u0645\u0627\u062c\u064a\u0629\n\u062e\u0634\u0645 \u0627\u0644\u0639\u0627\u0646\n\u0627\u0644\u062f\u0641\u0627\u0639\n\u0627\u0644\u0645\u0646\u0627\u062e\n\u0627\u0644\u0633\u0644\u064a\n\u0627\u0644\u0646\u0648\u0631\n\u0627\u0644\u0625\u0633\u0643\u0627\u0646\n\u0627\u0644\u0635\u0646\u0627\u0639\u064a\u0629 \u0627\u0644\u062c\u062f\u064a\u062f\u0629\n\u0627\u0644\u0641\u064a\u062d\u0627\u0621\n\u0627\u0644\u062c\u0632\u064a\u0631\u0629\n\u0627\u0644\u0633\u0639\u0627\u062f\u0629\n\u0647\u064a\u062a\n\u0627\u0644\u0628\u0631\u064a\u0629\n\u0627\u0644\u0645\u0634\u0627\u0639\u0644\n\u0627\u0644\u062f\u0648\u0628\u064a\u0629\n\u0627\u0644\u0642\u0631\u0649\n\u0627\u0644\u0635\u0646\u0627\u0639\u064a\u0629\n\u0627\u0644\u0648\u0633\u064a\u0637\u0627\u0621\n\u0645\u0639\u0643\u0627\u0644\n\u0627\u0644\u0641\u064a\u0635\u0644\u064a\u0629\n\u0645\u0646\u0641\u0648\u062d\u0629\n\u0627\u0644\u0645\u0646\u0635\u0648\u0631\u0629\n\u0627\u0644\u064a\u0645\u0627\u0645\u0629\n\u0633\u0644\u0627\u0645\n\u062c\u0628\u0631\u0629\n\u0639\u062a\u064a\u0642\u0629\n\u063a\u0628\u064a\u0631\u0627\u0621\n\u0627\u0644\u0628\u0637\u064a\u062d\u0627\n\u0627\u0644\u062e\u0627\u0644\u062f\u064a\u0629\n\u0627\u0644\u062f\u064a\u0631\u0629\n\u0627\u0644\u0639\u0648\u062f\n\u0627\u0644\u0645\u0631\u0642\u0628\n\u0645\u0646\u0641\u0648\u062d\u0629 \u0627\u0644\u062c\u062f\u064a\u062f\u0629\n\u0627\u0644\u0639\u0632\u064a\u0632\u064a\u0629\n\u0637\u064a\u0628\u0629\n\u0627\u0644\u0645\u0635\u0641\u0627\u0629\n\u0627\u0644\u062f\u0627\u0631 \u0627\u0644\u0628\u064a\u0636\u0627\u0621\n\u0627\u0644\u0645\u0635\u0627\u0646\u0639\n\u0627\u0644\u0645\u0646\u0635\u0648\u0631\u0629\n\u0627\u0644\u062d\u0627\u064a\u0631\n\u0627\u0644\u063a\u0646\u0627\u0645\u064a\u0629",
+   "reqd": 1,
+   "translatable": 1
+  },
+  {
+   "fieldname": "supervision_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "supervision status",
+   "options": "\nNo supervision\nwith supervision",
+   "reqd": 1,
+   "translatable": 1
+  },
+  {
+   "fieldname": "\u0645\u0644\u0627\u062d\u0638\u0627\u062a",
+   "fieldtype": "Small Text",
+   "label": "\u0645\u0644\u0627\u062d\u0638\u0627\u062a"
+  },
+  {
+   "fieldname": "section_break_ch0m8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "\u0635\u0648\u0627\u0646\u064a_\u062a\u0634\u0648\u0643\u0644\u062a",
+   "fieldtype": "Small Text",
+   "label": "Chocolate trays",
+   "print_width": "1",
+   "translatable": 1
+  },
+  {
+   "fieldname": "\u0635\u0648\u0627\u0646\u064a_\u0627\u0644\u0645\u0627\u0644\u062d",
+   "fieldtype": "Small Text",
+   "label": "salted trays",
+   "translatable": 1
+  },
+  {
+   "fieldname": "column_break_xojdp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "\u0635\u0648\u0627\u0646\u064a_vip",
+   "fieldtype": "Small Text",
+   "label": "VIP Trays",
+   "print_width": "1",
+   "translatable": 1
+  },
+  {
+   "fieldname": "\u0635\u0648\u0627\u0646\u064a_\u062a\u0627\u0628\u0639\u0647_\u0644\u0644\u0639\u0645\u064a\u0644",
+   "fieldtype": "Small Text",
+   "label": "Customer's trays",
+   "translatable": 1
+  },
+  {
+   "fieldname": "client_request_type_section",
+   "fieldtype": "Section Break",
+   "label": "Client Request Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "showroom_crt",
+   "fieldtype": "Check",
+   "label": "Showroom"
+  },
+  {
+   "fieldname": "column_break_dg25k",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "occasion_section_crt",
+   "fieldtype": "Check",
+   "label": "Occasion Section"
+  },
+  {
+   "fieldname": "column_break_mlidp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "customer_service_crt",
+   "fieldtype": "Check",
+   "label": "C.S."
+  },
+  {
+   "fieldname": "column_break_aed0p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "in_call_crt",
+   "fieldtype": "Check",
+   "label": "In Call"
+  },
+  {
+   "fieldname": "column_break_3z2ep",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "not_confirmed_crt",
+   "fieldtype": "Check",
+   "label": "Not Confirmed Order"
+  },
+  {
+   "fieldname": "shipment_type_section",
+   "fieldtype": "Section Break",
+   "label": "Shipment Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "delivery",
+   "fieldtype": "Check",
+   "label": "Delivery"
+  },
+  {
+   "fieldname": "column_break_phspu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "pickup",
+   "fieldtype": "Check",
+   "label": "Pickup"
+  },
+  {
+   "fieldname": "supervision_status_section",
+   "fieldtype": "Section Break",
+   "label": "Supervision Status"
+  },
+  {
+   "default": "0",
+   "fieldname": "supervision",
+   "fieldtype": "Check",
+   "label": "Supervision"
+  },
+  {
+   "fieldname": "column_break_r7k3z",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "no_supervision",
+   "fieldtype": "Check",
+   "label": "No Supervision"
+  },
+  {
+   "fieldname": "pickup_delivery_times_section",
+   "fieldtype": "Section Break",
+   "label": "Pickup/Delivery times"
+  },
+  {
+   "default": "0",
+   "fieldname": "5_to_7_30_pm",
+   "fieldtype": "Check",
+   "label": "\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 5:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 7:30 \u0645\u0633\u0627"
+  },
+  {
+   "fieldname": "column_break_xonkn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "4_pm",
+   "fieldtype": "Check",
+   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 4 \u0645\u0633\u0627"
+  },
+  {
+   "fieldname": "column_break_k5kos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "5_pm",
+   "fieldtype": "Check",
+   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 5 \u0645\u0633\u0627"
+  },
+  {
+   "fieldname": "customer_city_section",
+   "fieldtype": "Section Break",
+   "label": "Customer City"
+  },
+  {
+   "fieldname": "column_break_nw6nz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "al_medina",
+   "fieldtype": "Check",
+   "label": "Al-Medina"
+  },
+  {
+   "fieldname": "column_break_tn0wr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "jadda",
+   "fieldtype": "Check",
+   "label": "Jadda"
+  },
+  {
+   "fieldname": "column_break_nvmll",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "riyadh",
+   "fieldtype": "Check",
+   "label": "Riyadh"
+  },
+  {
+   "default": "0",
+   "fieldname": "dammam_city",
+   "fieldtype": "Check",
+   "label": "Dammam"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-04-24 07:25:32.615641",
+ "links": [],
+ "modified": "2023-02-22 16:31:18.681202",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
