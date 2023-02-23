@@ -19,9 +19,9 @@ def execute():
     frappe.db.sql("""UPDATE `tabClient Request CT` SET supervision = 1 where supervision_status = 'with supervision'""")    
   
 
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET 5_to_7_30_pm = 1 where `أوقات_التوصيل` = 'من الساعة 5:00 حتى الساعة 7:30 مساءً' """)      
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET 4_pm = 1 where `أوقات_التوصيل` = 'الساعة 4 مساءً' """) 
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET 5_pm = 1 where `أوقات_التوصيل` = 'الساعة 5 مساءً' """)  
+    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_to_7_30_pm = 1 where `أوقات_التوصيل` = 'من الساعة 5:00 حتى الساعة 7:30 مساءً' """)      
+    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_4_pm = 1 where `أوقات_التوصيل` = 'الساعة 4 مساءً' """) 
+    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_pm = 1 where `أوقات_التوصيل` = 'الساعة 5 مساءً' """)  
     # if frappe.db.has_column("Client Request CT", "أوقات_التوصيل"):                 
     #   frappe.db.sql_ddl("ALTER table `tabClient Request CT` DROP COLUMN أوقات_التوصيل")    
 

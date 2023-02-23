@@ -44,11 +44,11 @@
   "column_break_r7k3z",
   "no_supervision",
   "pickup_delivery_times_section",
-  "5_to_7_30_pm",
+  "pdt_5_to_7_30_pm",
   "column_break_xonkn",
-  "4_pm",
+  "pdt_4_pm",
   "column_break_k5kos",
-  "5_pm",
+  "pdt_5_pm",
   "customer_city_section",
   "dammam_city",
   "column_break_nw6nz",
@@ -570,30 +570,12 @@
    "label": "Pickup/Delivery times"
   },
   {
-   "default": "0",
-   "fieldname": "5_to_7_30_pm",
-   "fieldtype": "Check",
-   "label": "\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 5:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 7:30 \u0645\u0633\u0627"
-  },
-  {
    "fieldname": "column_break_xonkn",
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "4_pm",
-   "fieldtype": "Check",
-   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 4 \u0645\u0633\u0627"
-  },
-  {
    "fieldname": "column_break_k5kos",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "5_pm",
-   "fieldtype": "Check",
-   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 5 \u0645\u0633\u0627"
   },
   {
    "fieldname": "customer_city_section",
@@ -635,11 +617,29 @@
    "fieldname": "dammam_city",
    "fieldtype": "Check",
    "label": "Dammam"
+  },
+  {
+   "default": "0",
+   "fieldname": "pdt_5_to_7_30_pm",
+   "fieldtype": "Check",
+   "label": "\u0645\u0646 \u0627\u0644\u0633\u0627\u0639\u0629 5:00 \u062d\u062a\u0649 \u0627\u0644\u0633\u0627\u0639\u0629 7:30 \u0645\u0633\u0627"
+  },
+  {
+   "default": "0",
+   "fieldname": "pdt_4_pm",
+   "fieldtype": "Check",
+   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 4 \u0645\u0633\u0627"
+  },
+  {
+   "default": "0",
+   "fieldname": "pdt_5_pm",
+   "fieldtype": "Check",
+   "label": "\u0627\u0644\u0633\u0627\u0639\u0629 5 \u0645\u0633\u0627"
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-22 16:31:18.681202",
+ "modified": "2023-02-23 14:49:15.958961",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
