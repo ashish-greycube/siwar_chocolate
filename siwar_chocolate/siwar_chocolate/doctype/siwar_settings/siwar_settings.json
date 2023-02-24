@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2021-04-22 07:06:43.596005",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -6,7 +7,10 @@
  "field_order": [
   "tray_return_details_section",
   "booked_days_before",
-  "booked_days_after"
+  "booked_days_after",
+  "column_break_ovjqu",
+  "delivery_item",
+  "supervision_item"
  ],
  "fields": [
   {
@@ -31,10 +35,27 @@
    "in_list_view": 1,
    "label": "Booked Days After",
    "reqd": 1
+  },
+  {
+   "fieldname": "delivery_item",
+   "fieldtype": "Link",
+   "label": "Delivery Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_ovjqu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "supervision_item",
+   "fieldtype": "Link",
+   "label": "Supervision Item",
+   "options": "Item"
   }
  ],
  "issingle": 1,
- "modified": "2021-04-22 07:06:43.596005",
+ "links": [],
+ "modified": "2023-02-24 09:45:59.821322",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",
