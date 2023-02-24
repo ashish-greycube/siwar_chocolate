@@ -41,7 +41,184 @@ frappe.ui.form.on('Client Request CT', {
 				}
 			}
 		});	
-	}	
+	},
+// code to check only 1 checkbox at a time, rest all will be set 0
+    // --citry request type group  
+    showroom_crt: function (frm) {
+        var curfieldname = 'showroom_crt';
+        var grp_name = 'client_request_type';
+        if (frm.doc.showroom_crt == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    occasion_section_crt: function (frm) {
+        var curfieldname = 'occasion_section_crt';
+        var grp_name = 'client_request_type';
+        if (frm.doc.occasion_section_crt == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    customer_service_crt: function (frm) {
+        var curfieldname = 'customer_service_crt';
+        var grp_name = 'client_request_type';
+        if (frm.doc.customer_service_crt == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    in_call_crt: function (frm) {
+        var curfieldname = 'in_call_crt';
+        var grp_name = 'client_request_type';
+        if (frm.doc.in_call_crt == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    not_confirmed_crt: function (frm) {
+        var curfieldname = 'not_confirmed_crt';
+        var grp_name = 'client_request_type';
+        if (frm.doc.not_confirmed_crt == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    // -- customer city group
+    // -- synch with city select
+    dammam_city: function (frm) {
+        var curfieldname = 'dammam_city';
+        var grp_name = 'customer_city_cf';
+        if (frm.doc.dammam_city == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('customer_city_cf', 'الدمام Dammam');
+        }
+    },
+    al_medina: function (frm) {
+        var curfieldname = 'al_medina';
+        var grp_name = 'customer_city_cf';
+        if (frm.doc.al_medina == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('customer_city_cf', 'المدينة المنورة Al-Medina');
+        }
+    },
+    jadda: function (frm) {
+        var curfieldname = 'jadda';
+        var grp_name = 'customer_city_cf';
+        if (frm.doc.jadda == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('customer_city_cf', 'جدة jadda');
+        }
+    },
+    riyadh: function (frm) {
+        var curfieldname = 'riyadh';
+        var grp_name = 'customer_city_cf';
+        if (frm.doc.riyadh == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('customer_city_cf', 'الرياض Riyadh');
+        }
+    },
+    // -- delivery time group
+    // -- synch with delivery select
+    pdt_5_to_7_30_pm: function (frm) {
+        var curfieldname = 'pdt_5_to_7_30_pm';
+        var grp_name = 'pickup_delivery_times';
+        if (frm.doc.pdt_5_to_7_30_pm == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('أوقات_التوصيل', 'من الساعة 5:00 حتى الساعة 7:30 مساءً');
+        }
+    },
+    pdt_4_pm: function (frm) {
+        var curfieldname = 'pdt_4_pm';
+        var grp_name = 'pickup_delivery_times';
+        if (frm.doc.pdt_4_pm == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('أوقات_التوصيل', 'الساعة 4 مساءً');
+        }
+    },
+    pdt_5_pm: function (frm) {
+        var curfieldname = 'pdt_5_pm';
+        var grp_name = 'pickup_delivery_times';
+        if (frm.doc.pdt_5_pm == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('أوقات_التوصيل', 'الساعة 5 مساءً');
+        }
+    },
+    // shipment type group
+    // -- set district for pickup and set item to cover delivery cost
+    pickup: function (frm) {
+        var curfieldname = 'pickup';
+        var grp_name = 'shipment_type';
+        if (frm.doc.pickup == 1) {
+            disable_other(frm, curfieldname, grp_name);
+            frm.set_value('customer_district_cf', 'Siwar');
+        } else {
+            frm.set_value('customer_district_cf', '');
+        }
+    },
+    // on click on delivery checkbox, get delivery item from siwar settings and check if item is not exists 
+    // in child table then add it into child table.
+    delivery: function (frm) {
+        var curfieldname = 'delivery';
+        var grp_name = 'shipment_type';
+        if (frm.doc.delivery == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+        frappe.db.get_single_value('Siwar Settings', 'delivery_item')
+            .then(delivery_item => {
+                let found = false;
+                let i = frm.doc.items;
+                for (i = 0; i < frm.doc.items.length; i++) {
+                    if (frm.doc.items[i].item_code == delivery_item) {
+                        found = true
+                        frappe.show_alert('Delivery Item already exist');
+                        break;
+                    }
+                }
+                if (found === false) {
+                    let row = frm.add_child('items', {
+                        item_code: delivery_item,
+                    });
+                    frm.refresh_field('items');
+                }
+            })
+    },
+    // supervision   status group
+    // cover supervision cost
+    supervision: function (frm) {
+        var curfieldname = 'supervision';
+        var grp_name = 'supervision_status';
+        if (frm.doc.supervision == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+        frappe.db.get_single_value('Siwar Settings', 'supervision_item')
+            .then(supervision_item => {
+                let found = false;
+                let i = frm.doc.items;
+                for (i = 0; i < frm.doc.items.length; i++) {
+                    if (frm.doc.items[i].item_code == supervision_item) {
+                        found = true
+                        frappe.show_alert('Supervision Item already exist');
+                        break;
+                    }
+                }
+                if (found === false) {
+                    let row = frm.add_child('items', {
+                        item_code: supervision_item,
+                    });
+                    frm.refresh_field('items');
+                }
+            })
+    },
+    no_supervision: function (frm) {
+        var curfieldname = 'no_supervision';
+        var grp_name = 'supervision_status';
+        if (frm.doc.no_supervision == 1) {
+            disable_other(frm, curfieldname, grp_name);
+        }
+    },
+    // stop user from  submit whenn client request type is in call or not confirmed.
+    before_submit: function (frm) {
+        if ((frm.doc.in_call_crt) || (frm.doc.not_confirmed_crt)) {
+            frappe.throw(__('You cannot submit as the client request type is either <b>in call</b> or <b>not confirmed</b>'));
+        }
+    }
+		
 });
 
 frappe.ui.form.on('Client Request CT Tray Item', {
@@ -302,3 +479,29 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 	}
 });
 $.extend(cur_frm.cscript, new erpnext.selling.ClientRequestController({frm: cur_frm}));
+
+function disable_other(frm,curfieldname,grp_name){
+     
+    var select_grp_type_values = {
+        "client_request_type": ['showroom_crt','occasion_section_crt', 'customer_service_crt', 'in_call_crt','not_confirmed_crt'],
+        "customer_city_cf" : ['dammam_city','al_medina','jadda','riyadh'],
+        "pickup_delivery_times": ['pdt_5_to_7_30_pm','pdt_4_pm','pdt_5_pm'],
+        "shipment_type" : ['delivery','pickup'],
+        "supervision_status" : ['supervision','no_supervision']
+    };
+
+    var all_uncheck = select_grp_type_values[grp_name]
+    
+
+    for (var i = 0; i < all_uncheck.length; i++) {
+         if (curfieldname != all_uncheck[i] ) 
+         {
+              frm.set_value(all_uncheck[i], 0);
+             
+         }
+         else{
+             frm.set_value(all_uncheck[i], 1);
+         }
+    }
+
+}
