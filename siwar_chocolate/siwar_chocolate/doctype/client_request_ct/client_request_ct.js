@@ -113,6 +113,58 @@ frappe.ui.form.on('Client Request CT', {
             frm.set_value('customer_city_cf', 'الرياض Riyadh');
         }
     },
+
+	customer_city_cf: function(frm){
+		const field_cities=["الرياض Riyadh","جدة jadda","الدمام Dammam","المدينة المنورة Al-Medina"]		
+		if(field_cities.includes(frm.doc.customer_city_cf)){
+			// valid cities, so do nothing
+			if(frm.doc.customer_city_cf == "الرياض Riyadh")
+			{
+				if(frm.doc.riyadh == 0){
+					frm.set_value('riyadh',1)
+				}
+			}
+			if(frm.doc.customer_city_cf == "جدة jadda")
+			{
+				if(frm.doc.jadda == 0){
+					frm.set_value('jadda',1)
+				}
+			}
+			if(frm.doc.customer_city_cf == "الدمام Dammam")
+			{
+				if(frm.doc.dammam_city == 0){
+					frm.set_value('dammam_city',1)
+				}
+			}
+			if(frm.doc.customer_city_cf == "المدينة المنورة Al-Medina")
+			{
+				if(frm.doc.al_medina == 0){
+					frm.set_value('al_medina',1)
+				}
+			}
+			
+		}
+		else{
+			//  other than four valid cities
+			if(frm.doc.riyadh==1){
+				// uncheck only if particualr city is checked
+				frm.set_value('riyadh',0);
+			}
+			if(frm.doc.jadda==1){
+				// uncheck only if particualr city is checked
+				frm.set_value('jadda',0);
+			}
+			if(frm.doc.al_medina==1){
+				// uncheck only if particualr city is checked
+				frm.set_value('al_medina',0);
+			}
+			if(frm.doc.dammam_city==1){
+				// uncheck only if particualr city is checked
+				frm.set_value('dammam_city',0);
+			}
+		}
+	},
+	
     // -- delivery time group
     // -- synch with delivery select
     pdt_5_to_7_30_pm: function (frm) {
@@ -139,26 +191,78 @@ frappe.ui.form.on('Client Request CT', {
             frm.set_value('أوقات_التوصيل', 'الساعة 5 مساءً');
         }
     },
+
+	أوقات_التوصيل: function(frm){
+		const field_timing = ["من الساعة 5:00 حتى الساعة 7:30 مساءً","الساعة 4 مساءً","الساعة 5 مساءً"]
+		if(field_timing.includes(frm.doc.أوقات_التوصيل)){
+			// valid timing, so do nothing
+			if(frm.doc.أوقات_التوصيل == "من الساعة 5:00 حتى الساعة 7:30 مساءً")
+			{
+				if(frm.doc.pdt_5_to_7_30_pm == 0){
+					frm.set_value('pdt_5_to_7_30_pm',1)
+				}
+			}
+			if(frm.doc.أوقات_التوصيل == "الساعة 4 مساءً")
+			{
+				if(frm.doc.pdt_4_pm == 0){
+					frm.set_value('pdt_4_pm',1)
+				}
+			}
+			if(frm.doc.أوقات_التوصيل == "الساعة 5 مساءً")
+			{
+				if(frm.doc.pdt_5_pm == 0){
+					frm.set_value('pdt_5_pm',1)
+				}
+			}
+		}
+		else{
+			if(frm.doc.pdt_5_to_7_30_pm == 1){
+				frm.set_value('pdt_5_to_7_30_pm',0);
+			}
+			if(frm.doc.pdt_4_pm == 1){
+				frm.set_value('pdt_4_pm',0);
+			}
+			if(frm.doc.pdt_5_pm	== 1){
+				frm.set_value('pdt_5_pm',0);
+			}
+		}
+	},
     // shipment type group
     // -- set district for pickup and set item to cover delivery cost
-    pickup: function (frm) {
+    pickup: function(frm) {
         var curfieldname = 'pickup';
         var grp_name = 'shipment_type';
-        if (frm.doc.pickup == 1) {
+		
+
+        if (frm.doc.pickup == 1 ) {
+
             disable_other(frm, curfieldname, grp_name);
             frm.set_value('customer_district_cf', 'Siwar');
-        } else {
+        } 
+		else {
             frm.set_value('customer_district_cf', '');
         }
     },
+	customer_district_cf: function(frm){
+		const pickup_city = ["Siwar"]
+		if(pickup_city.includes(frm.doc.customer_district_cf)){
+			//valid pickup. so don't do anything
+		}
+		else{
+			if(frm.doc.pickup == 1){
+				frm.set_value('pickup',0);
+			}
+		}
+	},
     // on click on delivery checkbox, get delivery item from siwar settings and check if item is not exists 
     // in child table then add it into child table.
     delivery: function (frm) {
         var curfieldname = 'delivery';
         var grp_name = 'shipment_type';
+
         if (frm.doc.delivery == 1) {
             disable_other(frm, curfieldname, grp_name);
-        }
+        
         frappe.db.get_single_value('Siwar Settings', 'delivery_item')
             .then(delivery_item => {
                 let found = false;
@@ -171,12 +275,42 @@ frappe.ui.form.on('Client Request CT', {
                     }
                 }
                 if (found === false) {
-                    let row = frm.add_child('items', {
-                        item_code: delivery_item,
-                    });
-                    frm.refresh_field('items');
+                    frappe.db.get_value('Item', delivery_item, ['item_name','description','delivery_cost_cf'])
+                    .then(r => {
+                        let rate=r.message.delivery_cost_cf
+                        let item_name=r.message.item_name
+                        let description=r.message.description
+                        let qty=1
+                        let row = frm.add_child('items', {
+                            item_code: delivery_item,
+                            description:description,
+                            item_name:item_name,
+                            qty:qty,
+                            rate:rate,
+                            amount:flt(qty*rate)
+                        });
+                        frm.refresh_field('items');
+                    })                  
                 }
             })
+		}
+		else{
+			frappe.db.get_single_value('Siwar Settings', 'delivery_item')
+            .then(delivery_item => {
+                
+                let i = frm.doc.items;
+                for (i = 0; i < frm.doc.items.length; i++) {
+                    if (frm.doc.items[i].item_code == delivery_item) {
+                        {
+							frm.get_field("items").grid.grid_rows[i].remove();
+						}
+						frm.refresh_field('items');
+                    }
+                }
+                
+            })
+		}
+		
     },
     // supervision   status group
     // cover supervision cost
@@ -185,9 +319,10 @@ frappe.ui.form.on('Client Request CT', {
         var grp_name = 'supervision_status';
         if (frm.doc.supervision == 1) {
             disable_other(frm, curfieldname, grp_name);
-        }
+        
         frappe.db.get_single_value('Siwar Settings', 'supervision_item')
             .then(supervision_item => {
+
                 let found = false;
                 let i = frm.doc.items;
                 for (i = 0; i < frm.doc.items.length; i++) {
@@ -198,12 +333,41 @@ frappe.ui.form.on('Client Request CT', {
                     }
                 }
                 if (found === false) {
-                    let row = frm.add_child('items', {
-                        item_code: supervision_item,
-                    });
-                    frm.refresh_field('items');
+                    frappe.db.get_value('Item',supervision_item,['item_name','description','supervision_cost_cf'])
+					.then(r => {
+						let rate = r.message.supervision_cost_cf
+						let item_name = r.message.item_name
+						let description = r.message.description
+						let qty = 1
+						let row = frm.add_child('items',{
+							item_code : supervision_item,
+							description : description,
+							item_name : item_name,
+							qty:qty,
+							rate:rate,
+							amount:flt(qty*rate)
+						});
+						frm.refresh_field('items');
+					})
                 }
             })
+		}
+		else{
+			frappe.db.get_single_value('Siwar Settings', 'supervision_item')
+            .then(supervision_item => {
+                
+                let i = frm.doc.items;
+                for (i = 0; i < frm.doc.items.length; i++) {
+                    if (frm.doc.items[i].item_code == supervision_item) {
+                        {
+							frm.get_field("items").grid.grid_rows[i].remove();
+						}
+						frm.refresh_field('items');
+                    }
+                }
+                
+            })
+		}
     },
     no_supervision: function (frm) {
         var curfieldname = 'no_supervision';
