@@ -306,7 +306,7 @@
   },
   {
    "allow_on_submit": 1,
-   "depends_on": "eval:doc.shipment_type ==\"PickUp\"",
+   "depends_on": "eval:doc.pickup ==1",
    "fieldname": "pickup_date_time",
    "fieldtype": "Datetime",
    "label": "PIckup Date TIme"
@@ -631,7 +631,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-27 12:22:59.304178",
+ "modified": "2023-02-27 16:32:46.999925",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

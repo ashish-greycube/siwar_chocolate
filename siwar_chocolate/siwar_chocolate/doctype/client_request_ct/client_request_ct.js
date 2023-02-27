@@ -9,13 +9,23 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	
 	validate:function (frm) {
-		frm.toggle_reqd('pickup_date_time', frm.doc.shipment_type === 'PickUp' ? 1:0);
-		},
-	
-	shipment_type:function (frm) {
-			frm.toggle_reqd('pickup_date_time', frm.doc.shipment_type === 'PickUp' ? 1:0);
+		frm.toggle_reqd('pickup_date_time', frm.doc.pickup == 1 ? 1:0);
+
+		frm.set_intro("");
+		if (frm.doc.tray_items && frm.doc.tray_items.length>0) {
+			var tray_items_grid = frm.fields_dict['tray_items'].grid;
+			// filter the rows by the specified condition
+			var tray_items_non_reserved_rows = tray_items_grid.grid_rows.filter(function(row) {
+				return (row.doc.reserve_tray == '' || row.doc.reserve_tray == undefined);
+			});
+			// log the filtered rows
+			console.log(tray_items_non_reserved_rows);	
+			if (tray_items_non_reserved_rows.length>0) {
+				frm.set_intro(__("Attention : {0}/{1} Tray Items are pending for reservation",[tray_items_non_reserved_rows.length,frm.doc.tray_items.length]));		
+			}
+		}	
+
 	},
-	
 	onload: function(frm) {
 		if (!frm.doc.delivery_date){
 			frm.set_value('delivery_date', frappe.datetime.get_today())
@@ -247,6 +257,7 @@ frappe.ui.form.on('Client Request CT', {
 		
 
         if (frm.doc.pickup == 1 ) {
+			frm.toggle_reqd('pickup_date_time', frm.doc.pickup == 1 ? 1:0);        	
 
             disable_other(frm, curfieldname, grp_name);
             frm.set_value('customer_district_cf', 'Siwar');
@@ -393,7 +404,65 @@ frappe.ui.form.on('Client Request CT', {
         if ((frm.doc.in_call_crt) || (frm.doc.not_confirmed_crt)) {
             frappe.throw(__('You cannot submit as the client request type is either <b>in call</b> or <b>not confirmed</b>'));
         }
-    }
+    },
+	cancel_tray:function (frm) {
+        // get the selected child table rows
+        var selected_rows = frm.fields_dict['tray_items'].grid.get_selected_children();
+		if (selected_rows.length==0) {
+			frappe.show_alert({
+				message:__('Please select tray items for cancellation..'),
+				indicator:'red'
+			}, 5);			
+		}else{
+			frm.call({
+				method: "cancel_tray",
+				args: {
+					selected_rows: selected_rows
+				},
+				callback: function(r) {
+					frm.reload_doc();
+					if(r.message) {
+
+					}
+				}
+			});
+		}
+
+        // log the selected rows
+        console.log(selected_rows);		
+	},
+	reserve_tray:function (frm) {
+        // get the selected child table rows
+        var selected_rows = frm.fields_dict['tray_items'].grid.get_selected_children();
+		if (selected_rows.length==0) {
+			frappe.show_alert({
+				message:__('Please select tray items for reservation..'),
+				indicator:'red'
+			}, 5);			
+		}else{
+			frm.call({
+				method: "reserve_tray",
+				args: {
+					selected_rows: selected_rows
+				},
+				callback: function(r) {
+					frm.reload_doc();
+					if(r.message) {
+
+					}
+				}
+			});
+		}
+
+        // log the selected rows
+        console.log(selected_rows);		
+	},
+	refresh:function (frm) {
+		if (frm.is_new()==undefined && frm.doc.tray_items && frm.doc.tray_items.length>0) {
+			frm.add_custom_button(__('Reserve Tray'), () => reserve_tray());
+			frm.add_custom_button(__('Cancel Tray'), () => cancel_tray());
+		}		
+	}	
 		
 });
 

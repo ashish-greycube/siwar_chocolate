@@ -129,6 +129,48 @@ class ClientRequestCT(Document):
 		# frappe.db.set(self, 'tray_status', 'Available')
 
 	@frappe.whitelist()
+	def cancel_tray(self, args=None):
+		if not args:
+			args = frappe.form_dict.get('args')
+
+		if isinstance(args, string_types):
+			import json
+			args = json.loads(args)				
+		selected_rows = args['selected_rows']	
+		for tray in self.tray_items:	
+			if (tray.idx in selected_rows) and tray.reserve_tray != None:
+				# cancel SE 
+				frappe.delete_doc('Stock Entry', tray.reserve_tray)
+				frappe.msgprint("Stock Entry {0} for row no {1} is deleted".format(tray.reserve_tray,tray.idx),
+								title="Material Transfer is cancelled",
+								indicator="yellow",
+								alert=True)
+				tray.reserve_tray=None
+
+	@frappe.whitelist()
+	def reserve_tray(self, args=None):
+		if not args:
+			args = frappe.form_dict.get('args')
+
+		if isinstance(args, string_types):
+			import json
+			args = json.loads(args)				
+		selected_rows = args['selected_rows']	
+		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
+		default_tray_booking_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_booking_warehouse_cf')		
+		for tray in self.tray_items:	
+			if (tray.idx in selected_rows) and tray.reserve_tray == None:
+				# create SE 
+				mt_name=create_material_transfer(default_tray_warehouse_cf,default_tray_booking_warehouse_cf,tray.item_code,tray.qty)
+				tray.reserve_tray=mt_name				
+				frappe.msgprint("Stock Entry {0} for row no {1} is created".format(tray.reserve_tray,tray.idx),
+							title="Material Transfer is created",
+							indicator="green",
+							alert=True)			
+
+
+	@frappe.whitelist()
 	def get_tray_qty_details(self, args=None):
 		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
@@ -178,6 +220,7 @@ class ClientRequestCT(Document):
 							CR.docstatus=1 
 							and Trays.item_code=%s
 							and CR.delivery_date <= %s 
+							and Trays.reserve_tray is not null
 				''', (item,booked_from_date), as_dict=True)
 		if booked_tray_list:
 			for tray in booked_tray_list:
@@ -194,6 +237,25 @@ class ClientRequestCT(Document):
 
 		return ret_item			
 
+
+def create_material_transfer(from_warehouse, to_warehouse, item_code, qty):
+	# create a new Material Transfer document
+	material_transfer = frappe.new_doc("Material Transfer")
+
+	# set the values for the Material Transfer document
+	material_transfer.from_warehouse = from_warehouse
+	material_transfer.to_warehouse = to_warehouse
+	material_transfer.append("items", {
+		"item_code": item_code,
+		"qty": qty
+	})
+
+	# save the Material Transfer document
+	material_transfer.insert()
+	material_transfer.submit()
+
+	# return the name of the Material Transfer document
+	return material_transfer.name
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs

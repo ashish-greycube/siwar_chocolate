@@ -38,6 +38,7 @@ def unlink_client_request_from_sales_invoice(self,method):
 				
 
 def unlink_client_request_from_stock_entry(self,method):
+	# unlink material issue
 	if self.client_request_material_issue:
 		client_request_material_issue=self.client_request_material_issue
 		stock_entry=self.name
@@ -46,4 +47,10 @@ def unlink_client_request_from_stock_entry(self,method):
 		frappe.db.set_value('Client Request CT', client_request_material_issue, 'status', 'Submitted')
 		frappe.db.commit()
 		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
-						.format(stock_entry, client_request_material_issue))				
+						.format(stock_entry, client_request_material_issue))
+	# unlink material transfer
+	client_request_for_material_transfers=frappe.db.get_list('Client Request CT Tray Item', filters={'reserve_tray': ['=', self.name]},fields=['name', 'parent']) 
+	for client_request in client_request_for_material_transfers:
+		frappe.db.set_value('Client Request CT Tray Item',client_request.name, 'reserve_tray', None)
+		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
+						.format(self.name, client_request.parent))		
