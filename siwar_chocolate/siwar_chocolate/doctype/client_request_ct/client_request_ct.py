@@ -88,7 +88,17 @@ class ClientRequestCT(Document):
 	# 	self.reload()
 
 	# 	return stock_entry
-		
+
+	def validate(self):	
+		unique_items = set()
+		for item in self.tray_items:
+			if item.qty > item.available_qty:
+				frappe.throw(_("Tray Item {0} has {1} qty. It should be less than total available qty {2}.").format(item.item_code,item.qty,item.total_available_qty))
+			if item.item_code in unique_items:
+				frappe.throw(_("Tray Item {0} already exists in the child table.").format(item.item_code))
+			else:
+				unique_items.add(item.item_code)	
+
 	def on_submit(self):
 		if self.is_tray_required==1:
 			for tray in self.tray_items:
@@ -118,10 +128,14 @@ class ClientRequestCT(Document):
 		frappe.db.set(self, 'status', 'Cancelled')
 		# frappe.db.set(self, 'tray_status', 'Available')
 
+	@frappe.whitelist()
 	def get_tray_qty_details(self, args=None):
 		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
-
+		default_tray_booking_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_booking_warehouse_cf')
+		
+		delivery_item=frappe.db.get_single_value('Siwar Settings', 'delivery_item')
+		supervision_item=frappe.db.get_single_value('Siwar Settings', 'supervision_item')
 
 		if not args:
 			args = frappe.form_dict.get('args')
@@ -130,42 +144,52 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		item = args['item_code']
+
+		if item == delivery_item or item == supervision_item :
+			return
+		
 		qty=args.get('qty') or 1
 		delivery_date=self.delivery_date
-		pre_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_before')
-		post_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_after')
-		bin_list=frappe.db.get_all('Bin', filters={
+		reserved_booked_trays_for_days=frappe.db.get_single_value('Siwar Settings', 'reserved_booked_trays_for_days') or 3
+
+		available_qty=0									
+		default_tray_warehouse_bin_list=frappe.db.get_all('Bin', filters={
     										'warehouse': ['=', default_tray_warehouse_cf],
 											'item_code': ['=', item]},
 										fields=['actual_qty'],
 										as_list=False)	
-		print('bin'*100,bin_list)	
-		actual_qty=0									
-		if len(bin_list)>0:
-			actual_qty=bin_list[0]['actual_qty']
-		already_booked_qty=0
-		available_qty=0
-		booked_from_date=add_days(delivery_date,-cint(pre_days))
-		booked_to_date=add_days(delivery_date,cint(post_days))
+		if len(default_tray_warehouse_bin_list)>0:
+			available_qty=default_tray_warehouse_bin_list[0]['actual_qty']		
+
+		already_booked_qty=0									
+		default_tray_booking_warehouse_bin_list=frappe.db.get_all('Bin', filters={
+    										'warehouse': ['=', default_tray_booking_warehouse_cf],
+											'item_code': ['=', item]},
+										fields=['actual_qty'],
+										as_list=False)			
+		if len(default_tray_booking_warehouse_bin_list)>0:
+			already_booked_qty=default_tray_booking_warehouse_bin_list[0]['actual_qty']
+
+		booked_tray_which_will_be_available=0
+		booked_from_date=add_days(delivery_date,-cint(reserved_booked_trays_for_days))
 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
 							on Trays.parent=CR.name
 							where 
 							CR.docstatus=1 
 							and Trays.item_code=%s
-							and CR.delivery_date between %s and %s
-				''', (item,booked_from_date, booked_to_date), as_dict=True)
-
+							and CR.delivery_date <= %s 
+				''', (item,booked_from_date), as_dict=True)
 		if booked_tray_list:
 			for tray in booked_tray_list:
-				already_booked_qty=tray['qty']+already_booked_qty
-		print('--'*100,pre_days,post_days,booked_from_date,booked_to_date,booked_tray_list)
-		available_qty=actual_qty-already_booked_qty
+				booked_tray_which_will_be_available=tray['qty']+booked_tray_which_will_be_available
+
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
-			 'total_qty'  : actual_qty or 0,
-			 'already_booked_qty':already_booked_qty or 0,
 			 'available_qty':available_qty,
-			 'qty'			: args.get("qty") or 1
+			 'already_booked_qty':already_booked_qty or 0,
+	         'booked_tray_which_will_be_available':booked_tray_which_will_be_available,
+			 'total_available_qty':(available_qty+booked_tray_which_will_be_available),
+			 'qty': args.get("qty") or 1  #should not be > Total Available Qty on Delivery Date
 		}
 
 		return ret_item			

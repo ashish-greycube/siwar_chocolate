@@ -11,19 +11,26 @@ def execute():
     frappe.db.sql("""UPDATE `tabClient Request CT` SET not_confirmed_crt = 1 where client_request_type = 'طلب غير مؤكد ×××Not Confirmed Order×××'""")
 
 
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET pickup = 1 where shipment_type = 'PickUp'""")    
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET delivery = 1 where shipment_type = 'Delivery'""")     
- 
+    if frappe.db.has_column("Client Request CT", "shipment_type"):                 
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET pickup = 1 where shipment_type = 'PickUp'""")    
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET delivery = 1 where shipment_type = 'Delivery'""")     
+      # frappe.db.sql_ddl("ALTER table `tabClient Request CT` DROP COLUMN shipment_type")
 
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET no_supervision = 1 where supervision_status = 'No supervision'""")      
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET supervision = 1 where supervision_status = 'with supervision'""")    
+
+    if frappe.db.has_column("Client Request CT", "supervision_status"):                 
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET no_supervision = 1 where supervision_status = 'No supervision'""")      
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET supervision = 1 where supervision_status = 'with supervision'""")    
+      # frappe.db.sql_ddl("ALTER table `tabClient Request CT` DROP COLUMN supervision_status")    
   
-
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_to_7_30_pm = 1 where `أوقات_التوصيل` = 'من الساعة 5:00 حتى الساعة 7:30 مساءً' """)      
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_4_pm = 1 where `أوقات_التوصيل` = 'الساعة 4 مساءً' """) 
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_pm = 1 where `أوقات_التوصيل` = 'الساعة 5 مساءً' """)  
-    # if frappe.db.has_column("Client Request CT", "أوقات_التوصيل"):                 
-    #   frappe.db.sql_ddl("ALTER table `tabClient Request CT` DROP COLUMN أوقات_التوصيل")    
+    if frappe.db.has_column("Client Request CT", "أوقات_التوصيل"): 
+      #  copy to checkbox
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_to_7_30_pm = 1 where `أوقات_التوصيل` = 'من الساعة 5:00 حتى الساعة 7:30 مساءً' """)      
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_4_pm = 1 where `أوقات_التوصيل` = 'الساعة 4 مساءً' """) 
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET pdt_5_pm = 1 where `أوقات_التوصيل` = 'الساعة 5 مساءً' """)  
+      # copy entire column
+      frappe.db.sql("""UPDATE `tabClient Request CT` SET pickup_delivery_times_select=`أوقات_التوصيل`""")
+      # drop old arabic column
+      frappe.db.sql_ddl("""ALTER table `tabClient Request CT` DROP COLUMN `أوقات_التوصيل`""")    
 
     frappe.db.sql("""UPDATE `tabClient Request CT` SET riyadh = 1 where customer_city_cf = 'الرياض Riyadh'""")    
     frappe.db.sql("""UPDATE `tabClient Request CT` SET jadda = 1 where customer_city_cf = 'جدة jadda'""") 

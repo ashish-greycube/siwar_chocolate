@@ -32,15 +32,27 @@ frappe.ui.form.on('Client Request CT', {
 		}		
 	},	
 	update_available_tray_list: function(frm) {
-
-		frm.set_query('item_code', 'tray_items',function(doc, cdt, cdn) {
-			return {
-				query: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_available_tray_list",
-				filters: {
-					'delivery_date': doc.delivery_date
+		frappe.db.get_single_value('Siwar Settings', 'tray_group')
+		.then(tray_group => {
+			frm.set_query('item_code', 'tray_items',function(doc, cdt, cdn) {
+				return {
+					filters: {
+						'item_group': tray_group,
+						'disabled':0
+					}
 				}
-			}
-		});	
+			});
+		})
+	
+
+		// frm.set_query('item_code', 'tray_items',function(doc, cdt, cdn) {
+		// 	return {
+		// 		query: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_available_tray_list",
+		// 		filters: {
+		// 			'delivery_date': doc.delivery_date
+		// 		}
+		// 	}
+		// });	
 	},
 // code to check only 1 checkbox at a time, rest all will be set 0
     // --citry request type group  
@@ -172,7 +184,7 @@ frappe.ui.form.on('Client Request CT', {
         var grp_name = 'pickup_delivery_times';
         if (frm.doc.pdt_5_to_7_30_pm == 1) {
             disable_other(frm, curfieldname, grp_name);
-            frm.set_value('أوقات_التوصيل', 'من الساعة 5:00 حتى الساعة 7:30 مساءً');
+            frm.set_value('pickup_delivery_times_select', 'من الساعة 5:00 حتى الساعة 7:30 مساءً');
         }
     },
     pdt_4_pm: function (frm) {
@@ -180,7 +192,7 @@ frappe.ui.form.on('Client Request CT', {
         var grp_name = 'pickup_delivery_times';
         if (frm.doc.pdt_4_pm == 1) {
             disable_other(frm, curfieldname, grp_name);
-            frm.set_value('أوقات_التوصيل', 'الساعة 4 مساءً');
+            frm.set_value('pickup_delivery_times_select', 'الساعة 4 مساءً');
         }
     },
     pdt_5_pm: function (frm) {
@@ -188,27 +200,27 @@ frappe.ui.form.on('Client Request CT', {
         var grp_name = 'pickup_delivery_times';
         if (frm.doc.pdt_5_pm == 1) {
             disable_other(frm, curfieldname, grp_name);
-            frm.set_value('أوقات_التوصيل', 'الساعة 5 مساءً');
+            frm.set_value('pickup_delivery_times_select', 'الساعة 5 مساءً');
         }
     },
 
-	أوقات_التوصيل: function(frm){
+	pickup_delivery_times_select: function(frm){
 		const field_timing = ["من الساعة 5:00 حتى الساعة 7:30 مساءً","الساعة 4 مساءً","الساعة 5 مساءً"]
-		if(field_timing.includes(frm.doc.أوقات_التوصيل)){
+		if(field_timing.includes(frm.doc.pickup_delivery_times_select)){
 			// valid timing, so do nothing
-			if(frm.doc.أوقات_التوصيل == "من الساعة 5:00 حتى الساعة 7:30 مساءً")
+			if(frm.doc.pickup_delivery_times_select == "من الساعة 5:00 حتى الساعة 7:30 مساءً")
 			{
 				if(frm.doc.pdt_5_to_7_30_pm == 0){
 					frm.set_value('pdt_5_to_7_30_pm',1)
 				}
 			}
-			if(frm.doc.أوقات_التوصيل == "الساعة 4 مساءً")
+			if(frm.doc.pickup_delivery_times_select == "الساعة 4 مساءً")
 			{
 				if(frm.doc.pdt_4_pm == 0){
 					frm.set_value('pdt_4_pm',1)
 				}
 			}
-			if(frm.doc.أوقات_التوصيل == "الساعة 5 مساءً")
+			if(frm.doc.pickup_delivery_times_select == "الساعة 5 مساءً")
 			{
 				if(frm.doc.pdt_5_pm == 0){
 					frm.set_value('pdt_5_pm',1)
