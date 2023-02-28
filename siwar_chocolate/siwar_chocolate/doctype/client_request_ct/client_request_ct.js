@@ -9,6 +9,16 @@ frappe.ui.form.on('Client Request CT', {
 	// 			* this.frm.doc.additional_discount_percentage / 100, precision("discount_amount"));
 	// 	}
 	// },
+	crt_discount_percentage:function (frm) {
+		if (frm.doc.crt_discount_percentage>0) {
+			frm.set_value('crt_discount_amount', 0)
+		}
+	},
+	crt_discount_amount:function (frm) {
+		if (frm.doc.crt_discount_amount>0) {
+			frm.set_value('crt_discount_percentage', 0)
+		}
+	},	
 	is_tray_required:function (frm) {
 		frm.toggle_reqd('tray_items', frm.doc.is_tray_required === 1 ? 1:0);
 	},
