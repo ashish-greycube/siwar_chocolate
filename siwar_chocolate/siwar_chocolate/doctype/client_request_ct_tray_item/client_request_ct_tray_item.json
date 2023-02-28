@@ -14,13 +14,15 @@
   "booked_tray_which_will_be_available",
   "total_available_qty",
   "qty",
+  "rent_amount",
+  "deposit_amount",
   "column_break_5",
   "total_qty",
   "reserve_tray"
  ],
  "fields": [
   {
-   "columns": 3,
+   "columns": 2,
    "fieldname": "item_code",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -105,11 +107,21 @@
    "fieldtype": "Link",
    "label": "Reserve Tray",
    "options": "Stock Entry"
+  },
+  {
+   "fieldname": "rent_amount",
+   "fieldtype": "Currency",
+   "label": "Rent"
+  },
+  {
+   "fieldname": "deposit_amount",
+   "fieldtype": "Currency",
+   "label": "Deposit"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-02-27 15:25:08.801535",
+ "modified": "2023-02-28 07:05:29.731458",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT Tray Item",

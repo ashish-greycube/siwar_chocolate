@@ -3,7 +3,12 @@
 {% include 'erpnext/selling/sales_common.js' %}
 
 frappe.ui.form.on('Client Request CT', {
-
+	// discount_percentage:function (frm) {
+	// 	if(frm.doc.discount_percentage) {
+	// 		frm.doc.discount_amount = flt(flt(this.frm.doc[frappe.scrub(this.frm.doc.apply_discount_on)])
+	// 			* this.frm.doc.additional_discount_percentage / 100, precision("discount_amount"));
+	// 	}
+	// },
 	is_tray_required:function (frm) {
 		frm.toggle_reqd('tray_items', frm.doc.is_tray_required === 1 ? 1:0);
 	},
@@ -459,8 +464,8 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	refresh:function (frm) {
 		if (frm.is_new()==undefined && frm.doc.tray_items && frm.doc.tray_items.length>0) {
-			frm.add_custom_button(__('Reserve Tray'), () => reserve_tray());
-			frm.add_custom_button(__('Cancel Tray'), () => cancel_tray());
+			frm.add_custom_button(__('Reserve Tray'), () => frm.trigger('reserve_tray'));
+			frm.add_custom_button(__('Cancel Tray'), () => frm.trigger('cancel_tray'));
 		}		
 	}	
 		

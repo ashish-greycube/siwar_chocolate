@@ -89,7 +89,7 @@ class ClientRequestCT(Document):
 
 	# 	return stock_entry
 
-	def validate(self):	
+	def tray_item_to_have_unique_items(self):
 		unique_items = set()
 		for item in self.tray_items:
 			if item.qty > item.available_qty:
@@ -97,7 +97,64 @@ class ClientRequestCT(Document):
 			if item.item_code in unique_items:
 				frappe.throw(_("Tray Item {0} already exists in the child table.").format(item.item_code))
 			else:
-				unique_items.add(item.item_code)	
+				unique_items.add(item.item_code)
+
+	def total_tray_item_deposit_and_rent_amount(self):
+		total_deposit=0
+		total_rent=0
+		for item in self.tray_items:
+			total_deposit=+item.deposit_amount
+			total_rent=+item.rent_amount
+		self.total_rent=total_rent
+		self.total_deposit=total_deposit
+
+	def add_rent_item_to_client_request_item(self):
+		rent_item=frappe.db.get_single_value('Siwar Settings', 'rent_item')	
+		if self.total_rent>0 and not rent_item:
+			frappe.throw(_("Rent Item is not defined in siwar settings."),title=_('Error'))
+		if self.total_rent>0:	
+			rent_item_found=False
+			for item in self.items:
+				if item.item_code==rent_item:
+					rent_item_found=True
+					item.qty=1
+					item.rate=self.total_rent
+					item.amount=item.rate*item.qty
+					break
+			if rent_item_found==False:
+				self.items.append({
+					'item_code':rent_item,
+					'description':frappe.db.get_value('Item', rent_item, 'description'),
+					'item_name':frappe.db.get_value('Item', rent_item, 'item_name'),
+					'qty':1,
+					'rate':self.total_rent,
+					'amount':self.total_rent*1
+				})
+
+	def calculate_totals(self):
+		print('0'*10)
+		self.grand_total = sum([flt(client_item.amount) for client_item in self.items ])	
+		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 15
+		self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
+		print(net_total_less_percentage,self.crt_net_total)
+		if self.crt_discount_percentage >0:
+			self.crt_discount_amount=self.crt_net_total*(self.crt_discount_percentage/100)
+			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
+		elif self.crt_discount_amount>0:
+			self.crt_discount_percentage=(self.crt_discount_amount/self.crt_net_total)*100
+			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
+		self.total_deposit_in_grand=self.total_deposit
+		self.final_total=self.crt_amount_after_discount+self.total_deposit_in_grand
+		self.total_paid=0
+		self.outstanding_amount=self.final_total-self.total_paid
+
+	def validate(self):	
+		print('---')
+		self.tray_item_to_have_unique_items()
+		self.total_tray_item_deposit_and_rent_amount()
+		self.add_rent_item_to_client_request_item()
+		self.calculate_totals()
+		
 
 	def on_submit(self):
 		if self.is_tray_required==1:
@@ -225,14 +282,19 @@ class ClientRequestCT(Document):
 		if booked_tray_list:
 			for tray in booked_tray_list:
 				booked_tray_which_will_be_available=tray['qty']+booked_tray_which_will_be_available
-
+		
+		qty=args.get("qty") or 1 
+		rent_amount= frappe.db.get_value('Item', item, 'rent_cf')*qty
+		deposit_amount=frappe.db.get_value('Item', item, 'deposit_cf')*qty
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
 			 'already_booked_qty':already_booked_qty or 0,
 	         'booked_tray_which_will_be_available':booked_tray_which_will_be_available,
 			 'total_available_qty':(available_qty+booked_tray_which_will_be_available),
-			 'qty': args.get("qty") or 1  #should not be > Total Available Qty on Delivery Date
+			 'qty':qty , #should not be > Total Available Qty on Delivery Date
+			 'rent_amount':rent_amount,
+			 'deposit_amount':deposit_amount
 		}
 
 		return ret_item			

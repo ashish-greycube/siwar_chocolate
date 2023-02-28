@@ -20,8 +20,8 @@ def update_client_request_status(self,method):
 					client_item.amount=client_item.qty*flt(client_item.rate)
 					changed=True
 		if (changed==True):
-			client_request_doc.total = sum([flt(client_item.amount) for client_item in client_request_items ])
-			client_request_doc.base_grand_total=client_request_doc.total
+			client_request_doc.grand_total = sum([flt(client_item.amount) for client_item in client_request_items ])
+			client_request_doc.base_grand_total=client_request_doc.grand_total
 			client_request_doc.save()
 
 

@@ -12,7 +12,9 @@
   "column_break_ovjqu",
   "tray_group",
   "delivery_item",
-  "supervision_item"
+  "supervision_item",
+  "rent_item",
+  "net_total_less_percentage"
  ],
  "fields": [
   {
@@ -66,11 +68,23 @@
    "fieldtype": "Int",
    "label": "Reserved Booked Trays For (Days)",
    "reqd": 1
+  },
+  {
+   "fieldname": "rent_item",
+   "fieldtype": "Link",
+   "label": "Rent Item",
+   "options": "Item"
+  },
+  {
+   "default": "15",
+   "fieldname": "net_total_less_percentage",
+   "fieldtype": "Percent",
+   "label": "Net Total Less %"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-02-27 11:34:04.166084",
+ "modified": "2023-02-28 08:25:13.904006",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",

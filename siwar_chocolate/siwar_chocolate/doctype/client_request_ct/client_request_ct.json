@@ -18,8 +18,6 @@
   "column_break_7",
   "status",
   "delivery_date",
-  "delivery_time",
-  "pickup_date_time",
   "\u0645\u0644\u0627\u062d\u0638\u0627\u062a",
   "client_request_type_section",
   "showroom_crt",
@@ -67,12 +65,27 @@
   "tray_details_section",
   "is_tray_required",
   "tray_items",
+  "section_break_8wphr",
+  "total_filler",
+  "column_break_gv5jd",
+  "total_rent",
+  "column_break_zupvr",
+  "total_deposit",
   "section_break_13",
   "combine_all_as_mixed_chocolate",
   "items",
   "section_break_15",
+  "total_section_filler",
   "column_break_16",
-  "total",
+  "grand_total",
+  "crt_net_total",
+  "crt_discount_percentage",
+  "crt_discount_amount",
+  "crt_amount_after_discount",
+  "total_deposit_in_grand",
+  "final_total",
+  "total_paid",
+  "outstanding_amount",
   "amended_from",
   "reference",
   "sales_invoice",
@@ -151,7 +164,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Delivery Date",
+   "label": "Delivery/Pickup Date",
    "reqd": 1
   },
   {
@@ -170,15 +183,6 @@
   {
    "fieldname": "column_break_16",
    "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "total",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Total",
-   "options": "currency",
-   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -305,25 +309,12 @@
    "options": "Currency"
   },
   {
-   "allow_on_submit": 1,
-   "depends_on": "eval:doc.pickup ==1",
-   "fieldname": "pickup_date_time",
-   "fieldtype": "Datetime",
-   "label": "PIckup Date TIme"
-  },
-  {
    "fetch_from": "customer.phone_no_cf",
    "fieldname": "phone_no",
    "fieldtype": "Read Only",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Phone No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "delivery_time",
-   "fieldtype": "Time",
-   "label": "Delivery Time"
   },
   {
    "fieldname": "column_break_27",
@@ -627,11 +618,100 @@
   {
    "fieldname": "column_break_vk2e3",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_tray_required ==1",
+   "fieldname": "section_break_8wphr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_rent",
+   "fieldtype": "Currency",
+   "label": "Total Rent",
+   "options": "currency"
+  },
+  {
+   "fieldname": "column_break_zupvr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_deposit",
+   "fieldtype": "Currency",
+   "label": "Total Deposit",
+   "options": "currency"
+  },
+  {
+   "fieldname": "column_break_gv5jd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_filler",
+   "fieldtype": "Read Only"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Grand Total",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_section_filler",
+   "fieldtype": "Read Only"
+  },
+  {
+   "fieldname": "total_deposit_in_grand",
+   "fieldtype": "Currency",
+   "label": "Total Deposit",
+   "options": "currency"
+  },
+  {
+   "fieldname": "final_total",
+   "fieldtype": "Currency",
+   "label": "Final Total",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_paid",
+   "fieldtype": "Currency",
+   "label": "Total Paid",
+   "options": "currency"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount",
+   "options": "currency"
+  },
+  {
+   "fieldname": "crt_discount_percentage",
+   "fieldtype": "Percent",
+   "label": "Discount Percentage"
+  },
+  {
+   "fieldname": "crt_discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount",
+   "options": "currency"
+  },
+  {
+   "fieldname": "crt_amount_after_discount",
+   "fieldtype": "Currency",
+   "label": "Amount After Discount",
+   "options": "currency"
+  },
+  {
+   "fieldname": "crt_net_total",
+   "fieldtype": "Currency",
+   "label": "Net Total",
+   "options": "currency"
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-27 16:32:46.999925",
+ "modified": "2023-02-28 09:12:37.180652",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

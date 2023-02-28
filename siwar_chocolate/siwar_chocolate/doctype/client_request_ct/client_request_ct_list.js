@@ -1,5 +1,5 @@
 frappe.listview_settings['Client Request CT'] = {
-	add_fields: ["customer", "delivery_date", "status","total"],
+	add_fields: ["customer", "delivery_date", "status","grand_total"],
 	hide_name_column: true,
 	get_indicator: function (doc) {
 		if (doc.status === "Draft") {
