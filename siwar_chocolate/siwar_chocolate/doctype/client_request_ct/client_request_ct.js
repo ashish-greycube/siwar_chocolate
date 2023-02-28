@@ -419,18 +419,12 @@ frappe.ui.form.on('Client Request CT', {
 				indicator:'red'
 			}, 5);			
 		}else{
-			frm.call({
-				method: "cancel_tray",
-				args: {
-					selected_rows: selected_rows
-				},
-				callback: function(r) {
-					frm.reload_doc();
-					if(r.message) {
+			frm.call('cancel_tray', { selected_rows: selected_rows })
+				.then(r => {
+					frm.reload_doc()
+					console.log(r)
+				})			
 
-					}
-				}
-			});
 		}
 
         // log the selected rows
@@ -445,19 +439,13 @@ frappe.ui.form.on('Client Request CT', {
 				indicator:'red'
 			}, 5);			
 		}else{
-			frm.call({
-				method: "reserve_tray",
-				args: {
-					selected_rows: selected_rows
-				},
-				callback: function(r) {
-					frm.reload_doc();
-					if(r.message) {
+			frm.call('reserve_tray', { selected_rows: selected_rows })
+				.then(r => {
+					frm.reload_doc()
+					console.log(r)
+				})	
 
-					}
-				}
-			});
-		}
+			}
 
         // log the selected rows
         console.log(selected_rows);		

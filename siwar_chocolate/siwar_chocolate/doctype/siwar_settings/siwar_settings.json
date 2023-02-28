@@ -79,12 +79,13 @@
    "default": "15",
    "fieldname": "net_total_less_percentage",
    "fieldtype": "Percent",
-   "label": "Net Total Less %"
+   "label": "Net Total Less %",
+   "precision": "0"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-02-28 08:25:13.904006",
+ "modified": "2023-02-28 11:30:30.691146",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",

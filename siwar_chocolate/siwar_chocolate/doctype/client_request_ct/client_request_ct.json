@@ -68,7 +68,7 @@
   "section_break_8wphr",
   "total_filler",
   "column_break_gv5jd",
-  "total_rent",
+  "total_rent_amt",
   "column_break_zupvr",
   "total_deposit",
   "section_break_13",
@@ -625,12 +625,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "total_rent",
-   "fieldtype": "Currency",
-   "label": "Total Rent",
-   "options": "currency"
-  },
-  {
    "fieldname": "column_break_zupvr",
    "fieldtype": "Column Break"
   },
@@ -707,11 +701,22 @@
    "fieldtype": "Currency",
    "label": "Net Total",
    "options": "currency"
+  },
+  {
+   "fieldname": "total_rent_amt",
+   "fieldtype": "Currency",
+   "label": "Total Rent",
+   "options": "currency"
   }
  ],
  "is_submittable": 1,
- "links": [],
- "modified": "2023-02-28 09:12:37.180652",
+ "links": [
+  {
+   "link_doctype": "Payment Entry",
+   "link_fieldname": "client_request_ct"
+  }
+ ],
+ "modified": "2023-02-28 12:09:52.489129",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

@@ -101,39 +101,47 @@ class ClientRequestCT(Document):
 
 	def total_tray_item_deposit_and_rent_amount(self):
 		total_deposit=0
-		total_rent=0
-		for item in self.tray_items:
-			total_deposit=+item.deposit_amount
-			total_rent=+item.rent_amount
-		self.total_rent=total_rent
+		total_rent_amt=0
+		for tray_item in self.tray_items:
+			print('tray_item',tray_item,tray_item.get('deposit_amount'),tray_item.get('rent_amount'),total_rent_amt)
+			total_deposit=(total_deposit+tray_item.get('deposit_amount'))
+			total_rent_amt=(total_rent_amt+tray_item.get('rent_amount'))
+		print('----')
+		print(self.total_rent_amt,total_rent_amt)
+		self.total_rent_amt=total_rent_amt
 		self.total_deposit=total_deposit
 
 	def add_rent_item_to_client_request_item(self):
 		rent_item=frappe.db.get_single_value('Siwar Settings', 'rent_item')	
-		if self.total_rent>0 and not rent_item:
+		if self.total_rent_amt>0 and not rent_item:
 			frappe.throw(_("Rent Item is not defined in siwar settings."),title=_('Error'))
-		if self.total_rent>0:	
+		if self.total_rent_amt>0:	
 			rent_item_found=False
 			for item in self.items:
 				if item.item_code==rent_item:
 					rent_item_found=True
 					item.qty=1
-					item.rate=self.total_rent
+					item.rate=self.total_rent_amt
 					item.amount=item.rate*item.qty
 					break
 			if rent_item_found==False:
-				self.items.append({
+				self.append('items',{
 					'item_code':rent_item,
 					'description':frappe.db.get_value('Item', rent_item, 'description'),
 					'item_name':frappe.db.get_value('Item', rent_item, 'item_name'),
 					'qty':1,
-					'rate':self.total_rent,
-					'amount':self.total_rent*1
+					'rate':self.total_rent_amt,
+					'amount':self.total_rent_amt*1
 				})
 
 	def calculate_totals(self):
-		print('0'*10)
-		self.grand_total = sum([flt(client_item.amount) for client_item in self.items ])	
+		print('0'*10,self.name)
+		grand_total=0
+		# self.grand_total = sum([flt(client_item.amount) for client_item in self.items ])	
+		for client_item in self.items:
+			print(client_item)
+			grand_total= grand_total + client_item.get('amount')
+		self.grand_total=grand_total	
 		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 15
 		self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
 		print(net_total_less_percentage,self.crt_net_total)
@@ -145,7 +153,7 @@ class ClientRequestCT(Document):
 			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
 		self.total_deposit_in_grand=self.total_deposit
 		self.final_total=self.crt_amount_after_discount+self.total_deposit_in_grand
-		self.total_paid=0
+		self.total_paid=find_payment_etnry_linked_with_client_request(self.name)
 		self.outstanding_amount=self.final_total-self.total_paid
 
 	def validate(self):	
@@ -194,18 +202,26 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		selected_rows = args['selected_rows']	
+		selected_row_name=[]
+		for row in selected_rows:
+			selected_row_name.append(row.get('name'))		
 		for tray in self.tray_items:	
-			if (tray.idx in selected_rows) and tray.reserve_tray != None:
+			if (tray.name in selected_row_name) and tray.reserve_tray != None:
 				# cancel SE 
+				se=frappe.get_doc('Stock Entry', tray.reserve_tray)
+				se.cancel()
+				frappe.db.commit()
 				frappe.delete_doc('Stock Entry', tray.reserve_tray)
 				frappe.msgprint("Stock Entry {0} for row no {1} is deleted".format(tray.reserve_tray,tray.idx),
 								title="Material Transfer is cancelled",
 								indicator="yellow",
 								alert=True)
 				tray.reserve_tray=None
+				self.save()
 
 	@frappe.whitelist()
 	def reserve_tray(self, args=None):
+		print('-'*10)
 		if not args:
 			args = frappe.form_dict.get('args')
 
@@ -213,14 +229,20 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		selected_rows = args['selected_rows']	
+		print('selected_rows',selected_rows)
 		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
-		default_tray_booking_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_booking_warehouse_cf')		
+		default_tray_booking_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_booking_warehouse_cf')
+		selected_row_name=[]
+		for row in selected_rows:
+			selected_row_name.append(row.get('name'))
+		print('selected_row_name',selected_row_name)
 		for tray in self.tray_items:	
-			if (tray.idx in selected_rows) and tray.reserve_tray == None:
+			if (tray.name in selected_row_name) and tray.reserve_tray == None:
 				# create SE 
 				mt_name=create_material_transfer(default_tray_warehouse_cf,default_tray_booking_warehouse_cf,tray.item_code,tray.qty)
-				tray.reserve_tray=mt_name				
+				tray.reserve_tray=mt_name	
+				self.save()			
 				frappe.msgprint("Stock Entry {0} for row no {1} is created".format(tray.reserve_tray,tray.idx),
 							title="Material Transfer is created",
 							indicator="green",
@@ -253,7 +275,7 @@ class ClientRequestCT(Document):
 
 		available_qty=0									
 		default_tray_warehouse_bin_list=frappe.db.get_all('Bin', filters={
-    										'warehouse': ['=', default_tray_warehouse_cf],
+											'warehouse': ['=', default_tray_warehouse_cf],
 											'item_code': ['=', item]},
 										fields=['actual_qty'],
 										as_list=False)	
@@ -262,7 +284,7 @@ class ClientRequestCT(Document):
 
 		already_booked_qty=0									
 		default_tray_booking_warehouse_bin_list=frappe.db.get_all('Bin', filters={
-    										'warehouse': ['=', default_tray_booking_warehouse_cf],
+											'warehouse': ['=', default_tray_booking_warehouse_cf],
 											'item_code': ['=', item]},
 										fields=['actual_qty'],
 										as_list=False)			
@@ -290,7 +312,7 @@ class ClientRequestCT(Document):
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
 			 'already_booked_qty':already_booked_qty or 0,
-	         'booked_tray_which_will_be_available':booked_tray_which_will_be_available,
+			 'booked_tray_which_will_be_available':booked_tray_which_will_be_available,
 			 'total_available_qty':(available_qty+booked_tray_which_will_be_available),
 			 'qty':qty , #should not be > Total Available Qty on Delivery Date
 			 'rent_amount':rent_amount,
@@ -302,22 +324,21 @@ class ClientRequestCT(Document):
 
 def create_material_transfer(from_warehouse, to_warehouse, item_code, qty):
 	# create a new Material Transfer document
-	material_transfer = frappe.new_doc("Material Transfer")
-
-	# set the values for the Material Transfer document
-	material_transfer.from_warehouse = from_warehouse
-	material_transfer.to_warehouse = to_warehouse
-	material_transfer.append("items", {
-		"item_code": item_code,
-		"qty": qty
-	})
-
-	# save the Material Transfer document
-	material_transfer.insert()
-	material_transfer.submit()
-
+	se = frappe.new_doc('Stock Entry')
+	se.stock_entry_type = 'Material Transfer'
+	se.from_warehouse = from_warehouse
+	se.to_warehouse = to_warehouse
+	# se.posting_date = '2023-02-28'
+	
+	item1 = se.append('items')
+	item1.item_code = item_code
+	item1.qty = qty
+	item1.t_warehouse = to_warehouse
+	
+	se.save(ignore_permissions=True)	
+	se.submit()
 	# return the name of the Material Transfer document
-	return material_transfer.name
+	return se.name
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
@@ -351,7 +372,7 @@ def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,
 	tray_list=[]
 	for item in tray_items:
 		bin_list=frappe.db.get_all('Bin', filters={
-    										'warehouse': ['=', default_tray_warehouse_cf],
+											'warehouse': ['=', default_tray_warehouse_cf],
 											'item_code': ['=', item.item_code]},
 										fields=['actual_qty'],
 										as_list=False)	
@@ -726,3 +747,11 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 		pe.set_exchange_rate()
 		pe.set_amounts()
 	return pe
+
+
+def find_payment_etnry_linked_with_client_request(client_request):
+	total_paid_amount=0
+	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request]}, fields=['name', 'paid_amount'])
+	for pe in pe_list:
+		total_paid_amount=+pe.paid_amont
+	return total_paid_amount

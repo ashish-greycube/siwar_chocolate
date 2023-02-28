@@ -3,6 +3,7 @@ import frappe, erpnext
 import frappe.defaults
 from frappe import msgprint, _
 from frappe.utils import flt
+from siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct import find_payment_etnry_linked_with_client_request
 
 def update_client_request_status(self,method):
 	client_request_list=frappe.db.get_list('Client Request CT',filters={'stock_entry': self.name},fields=['name', 'status'],as_list=True)
@@ -54,3 +55,30 @@ def unlink_client_request_from_stock_entry(self,method):
 		frappe.db.set_value('Client Request CT Tray Item',client_request.name, 'reserve_tray', None)
 		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
 						.format(self.name, client_request.parent))		
+		
+def update_client_request_paid_amount(self,method):
+	if self.client_request_ct:
+		total_paid_amount=find_payment_etnry_linked_with_client_request(self.client_request_ct)
+		final_total=frappe.db.get_value('Client Request CT', self.client_request_ct, 'final_total')
+		outstanding_amount=final_total-total_paid_amount
+		frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid_amount', total_paid_amount)
+		frappe.db.set_value('Client Request CT', self.client_request_ct, 'outstanding_amount', outstanding_amount)
+		frappe.msgprint("Client Request {0}  is updated with Total Paid Amount {1} and Outstanding Amount {2}".format(self.client_request_ct,total_paid_amount,outstanding_amount),
+								title="Client Request is updated",
+								indicator="green",
+								alert=True)		
+		
+
+def unlink_client_request_from_payment_entry(self,method):
+	self.client_request_ct=None
+	total_paid_amount=find_payment_etnry_linked_with_client_request(self.client_request_ct)
+	final_total=frappe.db.get_value('Client Request CT', self.client_request_ct, 'final_total')
+	outstanding_amount=final_total-total_paid_amount
+	frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid_amount', total_paid_amount)
+	frappe.db.set_value('Client Request CT', self.client_request_ct, 'outstanding_amount', outstanding_amount)
+	frappe.msgprint("Client Request {0}  is updated with Total Paid Amount {1} and Outstanding Amount {2}".format(self.client_request_ct,total_paid_amount,outstanding_amount),
+							title="Client Request is updated",
+							indicator="green",
+							alert=True)		
+
+
