@@ -6,11 +6,11 @@
  "engine": "InnoDB",
  "field_order": [
   "tray_return_details_section",
+  "reserved_booked_trays_for_days",
+  "tray_group",
   "booked_days_before",
   "booked_days_after",
-  "reserved_booked_trays_for_days",
   "column_break_ovjqu",
-  "tray_group",
   "delivery_item",
   "supervision_item",
   "rent_item",
@@ -20,7 +20,7 @@
   {
    "fieldname": "tray_return_details_section",
    "fieldtype": "Section Break",
-   "label": "Tray Return Details"
+   "label": "Tray  Details"
   },
   {
    "default": "3",
@@ -44,26 +44,31 @@
    "fieldname": "delivery_item",
    "fieldtype": "Link",
    "label": "Delivery Item",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ovjqu",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "label": "Other Item Details"
   },
   {
    "fieldname": "supervision_item",
    "fieldtype": "Link",
    "label": "Supervision Item",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1
   },
   {
    "fieldname": "tray_group",
    "fieldtype": "Link",
    "label": "Tray Group",
-   "options": "Item Group"
+   "options": "Item Group",
+   "reqd": 1
   },
   {
    "default": "3",
+   "description": "No. of days before delivery date, for which all other trays are considered available",
    "fieldname": "reserved_booked_trays_for_days",
    "fieldtype": "Int",
    "label": "Reserved Booked Trays For (Days)",
@@ -73,19 +78,21 @@
    "fieldname": "rent_item",
    "fieldtype": "Link",
    "label": "Rent Item",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1
   },
   {
    "default": "15",
    "fieldname": "net_total_less_percentage",
    "fieldtype": "Percent",
    "label": "Net Total Less %",
-   "precision": "0"
+   "precision": "0",
+   "reqd": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-02-28 11:30:30.691146",
+ "modified": "2023-03-01 09:33:32.328203",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",
