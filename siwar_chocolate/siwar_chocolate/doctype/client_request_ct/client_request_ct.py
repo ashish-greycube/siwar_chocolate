@@ -145,16 +145,20 @@ class ClientRequestCT(Document):
 		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 15
 		self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
 		print(net_total_less_percentage,self.crt_net_total)
-		if self.crt_discount_percentage >0:
+		self.crt_amount_after_discount=self.crt_net_total
+		if self.crt_discount_percentage and self.crt_discount_percentage >0:
 			self.crt_discount_amount=self.crt_net_total*(self.crt_discount_percentage/100)
 			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
-		elif self.crt_discount_amount>0:
+		elif self.crt_discount_amount and self.crt_discount_amount>0:
 			self.crt_discount_percentage=(self.crt_discount_amount/self.crt_net_total)*100
 			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
 		self.total_deposit_in_grand=self.total_deposit
 		self.final_total=self.crt_amount_after_discount+self.total_deposit_in_grand
 		self.total_paid=find_payment_etnry_linked_with_client_request(self.name)
 		self.outstanding_amount=self.final_total-self.total_paid
+
+		for packing_item in self.packing_items:
+			packing_item.amount=packing_item.rate*packing_item.qty
 
 	def validate(self):	
 		print('---')
@@ -169,9 +173,9 @@ class ClientRequestCT(Document):
 			for tray in self.tray_items:
 				if tray.qty>tray.available_qty:
 					frappe.throw(_("For Row : {0}, Tray : {1} entered qty is {2}. It should be less than available qty {3}.").format(tray.idx,tray.item_code,tray.qty,tray.available_qty),title=_('Error'))
-				tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},tray.item_code,tray.qty)
-				if len(tray_list)==0:
-					frappe.throw(_("Tray {0} is occupied. Cannot submit.").format(tray.item_code),title=_('Error'))
+				# tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},tray.item_code,tray.qty)
+				# if len(tray_list)==0:
+				# 	frappe.throw(_("Tray {0} is occupied. Cannot submit.").format(tray.item_code),title=_('Error'))
 
 			# frappe.db.set(self, 'tray_status', 'Booked')
 			# stock_entry=self.create_stock_entry(tray_return=False)
@@ -232,7 +236,11 @@ class ClientRequestCT(Document):
 		print('selected_rows',selected_rows)
 		default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
+		if not default_tray_warehouse_cf:
+			frappe.throw(_("Define default tray warehouse for company {0}").format(default_company))
 		default_tray_booking_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_booking_warehouse_cf')
+		if not default_tray_booking_warehouse_cf:
+			frappe.throw(_("Define default tray booking warehouse for company {0}").format(default_company))		
 		selected_row_name=[]
 		for row in selected_rows:
 			selected_row_name.append(row.get('name'))
@@ -340,65 +348,65 @@ def create_material_transfer(from_warehouse, to_warehouse, item_code, qty):
 	# return the name of the Material Transfer document
 	return se.name
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
-def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None,qty=1):
-	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
-	tray_item_group_cf=frappe.db.get_value('Company', default_company, 'tray_item_group_cf')
-	default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
-	delivery_date=filters.get("delivery_date")
-	pre_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_before')
-	post_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_after')	
-	booked_from_date=add_days(delivery_date,-cint(pre_days))
-	booked_to_date=add_days(delivery_date,cint(post_days))	
-	if item_code==None:
-		condition_1=" "
-	else:
-		condition_1=" and item.item_code='{item_code}'".format(item_code=item_code)
+# @frappe.whitelist()
+# @frappe.validate_and_sanitize_search_inputs
+# def get_available_tray_list(doctype, txt, searchfield, start, page_len, filters,item_code=None,qty=1):
+# 	default_company = frappe.db.get_single_value('Global Defaults', 'default_company')
+# 	tray_item_group_cf=frappe.db.get_value('Company', default_company, 'tray_item_group_cf')
+# 	default_tray_warehouse_cf=frappe.db.get_value('Company', default_company, 'default_tray_warehouse_cf')
+# 	delivery_date=filters.get("delivery_date")
+# 	pre_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_before')
+# 	post_days=frappe.db.get_single_value('Siwar Settings', 'booked_days_after')	
+# 	booked_from_date=add_days(delivery_date,-cint(pre_days))
+# 	booked_to_date=add_days(delivery_date,cint(post_days))	
+# 	if item_code==None:
+# 		condition_1=" "
+# 	else:
+# 		condition_1=" and item.item_code='{item_code}'".format(item_code=item_code)
 
-	tray_items_sql="""
-		SELECT
-			item.item_code as item_code,
-			item.item_name as item_name,
-			item.description as description,
-			0.0 as qty
-		FROM			
-			`tabItem` AS item
-		WHERE
-			item.item_group='{tray_item_group_cf}'
-		{condition}""".format(tray_item_group_cf=tray_item_group_cf,condition=condition_1)
+# 	tray_items_sql="""
+# 		SELECT
+# 			item.item_code as item_code,
+# 			item.item_name as item_name,
+# 			item.description as description,
+# 			0.0 as qty
+# 		FROM			
+# 			`tabItem` AS item
+# 		WHERE
+# 			item.item_group='{tray_item_group_cf}'
+# 		{condition}""".format(tray_item_group_cf=tray_item_group_cf,condition=condition_1)
 
-	tray_items = frappe.db.sql(tray_items_sql,as_dict=1)
-	tray_list=[]
-	for item in tray_items:
-		bin_list=frappe.db.get_all('Bin', filters={
-											'warehouse': ['=', default_tray_warehouse_cf],
-											'item_code': ['=', item.item_code]},
-										fields=['actual_qty'],
-										as_list=False)	
-		actual_qty=0									
-		if len(bin_list)>0:
-			actual_qty=bin_list[0]['actual_qty']
-		already_booked_qty=0
-		available_qty=0
+# 	tray_items = frappe.db.sql(tray_items_sql,as_dict=1)
+# 	tray_list=[]
+# 	for item in tray_items:
+# 		bin_list=frappe.db.get_all('Bin', filters={
+# 											'warehouse': ['=', default_tray_warehouse_cf],
+# 											'item_code': ['=', item.item_code]},
+# 										fields=['actual_qty'],
+# 										as_list=False)	
+# 		actual_qty=0									
+# 		if len(bin_list)>0:
+# 			actual_qty=bin_list[0]['actual_qty']
+# 		already_booked_qty=0
+# 		available_qty=0
 
-		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
-							on Trays.parent=CR.name
-							where 
-							CR.docstatus=1 
-							and Trays.item_code=%s
-							and CR.delivery_date between %s and %s
-				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)
+# 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
+# 							on Trays.parent=CR.name
+# 							where 
+# 							CR.docstatus=1 
+# 							and Trays.item_code=%s
+# 							and CR.delivery_date between %s and %s
+# 				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)
 
 
-		if booked_tray_list:
-			for tray in booked_tray_list:
-				already_booked_qty=tray['qty']+already_booked_qty
-		available_qty=actual_qty-already_booked_qty		
-		item.qty =available_qty
-		if item.qty>0:
-			tray_list.append([item.item_code,item.item_name,item.description,item.qty])
-	return tray_list
+# 		if booked_tray_list:
+# 			for tray in booked_tray_list:
+# 				already_booked_qty=tray['qty']+already_booked_qty
+# 		available_qty=actual_qty-already_booked_qty		
+# 		item.qty =available_qty
+# 		if item.qty>0:
+# 			tray_list.append([item.item_code,item.item_name,item.description,item.qty])
+# 	return tray_list
 
 #scheduler function
 # @frappe.whitelist()
@@ -428,10 +436,15 @@ def make_stock_entry(source_name, target_doc=None):
 		else:
 			target.s_warehouse = obj.warehouse
 
-	def set_missing_values(source, target):
-		target.client_request_material_issue=source.name
-		target.purpose = source.material_request_type
 
+
+	def set_missing_values(source, target):
+
+
+		target.client_request_material_issue=source.name
+		print('source.material_request_type',source.material_request_type)
+		target.purpose = source.material_request_type
+		target.stock_entry_type='Material Issue'
 		target.run_method("calculate_rate_and_amount")
 		target.set_stock_entry_type()
 		target.set_job_card_data()
@@ -454,10 +467,22 @@ def make_stock_entry(source_name, target_doc=None):
 			},
 			"postprocess": update_item,
 			"condition": lambda doc:frappe.get_cached_value('Item', doc.item_code, 'is_stock_item')==1
-		}
+		},
+		"Client Request CT Packing Item": {
+			"doctype": "Stock Entry Detail",
+			"field_map": {
+				"name": "packing_items",
+				"parent": "client_request_ct",
+				"uom": "stock_uom",
+			},
+			"postprocess": update_item,
+			"condition": lambda doc:frappe.get_cached_value('Item', doc.item_code, 'is_stock_item')==1
+		}		
 	}, target_doc, set_missing_values)
 	# change due to siwari
+
 	doclist.save()
+	
 	frappe.db.set_value('Client Request CT', source_name, 'stock_entry', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Under Preparation')
 	return doclist

@@ -47,13 +47,13 @@ def unlink_client_request_from_stock_entry(self,method):
 		frappe.db.set_value('Stock Entry', stock_entry , 'client_request_material_issue', '')
 		frappe.db.set_value('Client Request CT', client_request_material_issue, 'status', 'Submitted')
 		frappe.db.commit()
-		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
+		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked for material issue.")
 						.format(stock_entry, client_request_material_issue))
 	# unlink material transfer
 	client_request_for_material_transfers=frappe.db.get_list('Client Request CT Tray Item', filters={'reserve_tray': ['=', self.name]},fields=['name', 'parent']) 
 	for client_request in client_request_for_material_transfers:
 		frappe.db.set_value('Client Request CT Tray Item',client_request.name, 'reserve_tray', None)
-		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked.")
+		frappe.msgprint(_("Stock Entry {0} and Client Request {1} are unlinked for material transfer.")
 						.format(self.name, client_request.parent))		
 		
 def update_client_request_paid_amount(self,method):

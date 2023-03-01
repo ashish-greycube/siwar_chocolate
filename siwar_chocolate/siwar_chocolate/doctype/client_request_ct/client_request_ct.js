@@ -3,12 +3,15 @@
 {% include 'erpnext/selling/sales_common.js' %}
 
 frappe.ui.form.on('Client Request CT', {
-	// discount_percentage:function (frm) {
-	// 	if(frm.doc.discount_percentage) {
-	// 		frm.doc.discount_amount = flt(flt(this.frm.doc[frappe.scrub(this.frm.doc.apply_discount_on)])
-	// 			* this.frm.doc.additional_discount_percentage / 100, precision("discount_amount"));
-	// 	}
-	// },
+	setup:function (frm) {
+		frm.set_query('item_code', 'packing_items', () => {
+			return {
+				filters: {
+					is_stock_item: 1
+				}
+			}
+		})
+	},
 	crt_discount_percentage:function (frm) {
 		if (frm.doc.crt_discount_percentage>0) {
 			frm.set_value('crt_discount_amount', 0)
@@ -304,8 +307,7 @@ frappe.ui.form.on('Client Request CT', {
         frappe.db.get_single_value('Siwar Settings', 'delivery_item')
             .then(delivery_item => {
                 let found = false;
-                let i = frm.doc.items;
-                for (i = 0; i < frm.doc.items.length; i++) {
+                for (let i = 0; i < frm.doc.items.length; i++) {
                     if (frm.doc.items[i].item_code == delivery_item) {
                         found = true
                         frappe.show_alert('Delivery Item already exist');
@@ -315,6 +317,7 @@ frappe.ui.form.on('Client Request CT', {
                 if (found === false) {
                     frappe.db.get_value('Item', delivery_item, ['item_name','description','delivery_cost_cf'])
                     .then(r => {
+						remove_empty_child_table_row_from_items(frm)
                         let rate=r.message.delivery_cost_cf
                         let item_name=r.message.item_name
                         let description=r.message.description
@@ -336,8 +339,7 @@ frappe.ui.form.on('Client Request CT', {
 			frappe.db.get_single_value('Siwar Settings', 'delivery_item')
             .then(delivery_item => {
                 
-                let i = frm.doc.items;
-                for (i = 0; i < frm.doc.items.length; i++) {
+                for (let i = 0; i < frm.doc.items.length; i++) {
                     if (frm.doc.items[i].item_code == delivery_item) {
                         {
 							frm.get_field("items").grid.grid_rows[i].remove();
@@ -362,8 +364,7 @@ frappe.ui.form.on('Client Request CT', {
             .then(supervision_item => {
 
                 let found = false;
-                let i = frm.doc.items;
-                for (i = 0; i < frm.doc.items.length; i++) {
+                for (let i = 0; i < frm.doc.items.length; i++) {
                     if (frm.doc.items[i].item_code == supervision_item) {
                         found = true
                         frappe.show_alert('Supervision Item already exist');
@@ -373,6 +374,7 @@ frappe.ui.form.on('Client Request CT', {
                 if (found === false) {
                     frappe.db.get_value('Item',supervision_item,['item_name','description','supervision_cost_cf'])
 					.then(r => {
+						remove_empty_child_table_row_from_items(frm)
 						let rate = r.message.supervision_cost_cf
 						let item_name = r.message.item_name
 						let description = r.message.description
@@ -394,8 +396,7 @@ frappe.ui.form.on('Client Request CT', {
 			frappe.db.get_single_value('Siwar Settings', 'supervision_item')
             .then(supervision_item => {
                 
-                let i = frm.doc.items;
-                for (i = 0; i < frm.doc.items.length; i++) {
+                for (let i = 0; i < frm.doc.items.length; i++) {
                     if (frm.doc.items[i].item_code == supervision_item) {
                         {
 							frm.get_field("items").grid.grid_rows[i].remove();
@@ -752,4 +753,17 @@ function disable_other(frm,curfieldname,grp_name){
          }
     }
 
+}
+
+function remove_empty_child_table_row_from_items(frm) {
+// Get the child table
+for (let i = 0; i < frm.doc.items.length; i++) {
+	if (frm.doc.items[i].item_code ===undefined) {
+		{
+			frm.get_field("items").grid.grid_rows[i].remove();
+		}
+		frm.refresh_field('items');
+	}
+}
+	
 }

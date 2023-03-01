@@ -87,6 +87,8 @@
   "total_paid",
   "outstanding_amount",
   "amended_from",
+  "section_break_evmxe",
+  "packing_items",
   "reference",
   "sales_invoice",
   "material_request",
@@ -707,6 +709,16 @@
    "fieldtype": "Currency",
    "label": "Total Rent",
    "options": "currency"
+  },
+  {
+   "fieldname": "section_break_evmxe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "packing_items",
+   "fieldtype": "Table",
+   "label": "Packing Item",
+   "options": "Client Request CT Packing Item"
   }
  ],
  "is_submittable": 1,
@@ -716,7 +728,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-02-28 12:09:52.489129",
+ "modified": "2023-02-28 15:55:32.349666",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
