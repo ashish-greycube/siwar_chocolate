@@ -61,7 +61,7 @@ def update_client_request_paid_amount(self,method):
 		total_paid_amount=find_payment_etnry_linked_with_client_request(self.client_request_ct)
 		final_total=frappe.db.get_value('Client Request CT', self.client_request_ct, 'final_total')
 		outstanding_amount=final_total-total_paid_amount
-		frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid_amount', total_paid_amount)
+		frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid', total_paid_amount)
 		frappe.db.set_value('Client Request CT', self.client_request_ct, 'outstanding_amount', outstanding_amount)
 		frappe.msgprint("Client Request {0}  is updated with Total Paid Amount {1} and Outstanding Amount {2}".format(self.client_request_ct,total_paid_amount,outstanding_amount),
 								title="Client Request is updated",
@@ -74,7 +74,7 @@ def unlink_client_request_from_payment_entry(self,method):
 	total_paid_amount=find_payment_etnry_linked_with_client_request(self.client_request_ct)
 	final_total=frappe.db.get_value('Client Request CT', self.client_request_ct, 'final_total')
 	outstanding_amount=final_total-total_paid_amount
-	frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid_amount', total_paid_amount)
+	frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid', total_paid_amount)
 	frappe.db.set_value('Client Request CT', self.client_request_ct, 'outstanding_amount', outstanding_amount)
 	frappe.msgprint("Client Request {0}  is updated with Total Paid Amount {1} and Outstanding Amount {2}".format(self.client_request_ct,total_paid_amount,outstanding_amount),
 							title="Client Request is updated",
