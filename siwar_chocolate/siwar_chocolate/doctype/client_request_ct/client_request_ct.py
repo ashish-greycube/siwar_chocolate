@@ -778,5 +778,6 @@ def find_payment_etnry_linked_with_client_request(client_request):
 	total_paid_amount=0
 	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request]}, fields=['name', 'paid_amount'])
 	for pe in pe_list:
-		total_paid_amount=total_paid_amount+pe.paid_amont
+		if pe.paid_amont:
+			total_paid_amount=total_paid_amount+pe.paid_amont
 	return total_paid_amount
