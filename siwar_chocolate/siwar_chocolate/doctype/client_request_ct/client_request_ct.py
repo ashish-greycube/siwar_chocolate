@@ -104,8 +104,8 @@ class ClientRequestCT(Document):
 		total_rent_amt=0
 		for tray_item in self.tray_items:
 			print('tray_item',tray_item,tray_item.get('deposit_amount'),tray_item.get('rent_amount'),total_rent_amt)
-			total_deposit=(total_deposit+tray_item.get('deposit_amount'))
-			total_rent_amt=(total_rent_amt+tray_item.get('rent_amount'))
+			total_deposit=(total_deposit+(tray_item.get('deposit_amount')*tray_item.qty))
+			total_rent_amt=(total_rent_amt+(tray_item.get('rent_amount')*tray_item.qty))
 		print('----')
 		print(self.total_rent_amt,total_rent_amt)
 		self.total_rent_amt=total_rent_amt
@@ -778,5 +778,5 @@ def find_payment_etnry_linked_with_client_request(client_request):
 	total_paid_amount=0
 	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request]}, fields=['name', 'paid_amount'])
 	for pe in pe_list:
-		total_paid_amount=+pe.paid_amont
+		total_paid_amount=total_paid_amount+pe.paid_amont
 	return total_paid_amount
