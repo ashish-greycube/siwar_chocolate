@@ -65,11 +65,7 @@
   "tray_details_section",
   "is_tray_required",
   "tray_items",
-  "section_break_8wphr",
-  "total_filler",
-  "column_break_gv5jd",
   "total_rent_amt",
-  "column_break_zupvr",
   "total_deposit",
   "section_break_13",
   "combine_all_as_mixed_chocolate",
@@ -623,26 +619,10 @@
   },
   {
    "depends_on": "eval:doc.is_tray_required ==1",
-   "fieldname": "section_break_8wphr",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_zupvr",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "total_deposit",
    "fieldtype": "Currency",
    "label": "Total Deposit",
    "options": "currency"
-  },
-  {
-   "fieldname": "column_break_gv5jd",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_filler",
-   "fieldtype": "Read Only"
   },
   {
    "allow_on_submit": 1,
@@ -705,6 +685,7 @@
    "options": "currency"
   },
   {
+   "depends_on": "eval:doc.is_tray_required ==1",
    "fieldname": "total_rent_amt",
    "fieldtype": "Currency",
    "label": "Total Rent",
@@ -728,7 +709,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-02-28 15:55:32.349666",
+ "modified": "2023-03-02 11:53:54.790678",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

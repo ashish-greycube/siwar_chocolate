@@ -182,6 +182,12 @@ class ClientRequestCT(Document):
 			# frappe.db.set(self, 'tray_issue_stock_entry', stock_entry)
 
 		frappe.db.set(self, 'status', 'Submitted')
+		#  do material issue
+		material_issue=make_stock_entry(self.name)
+		frappe.msgprint("Material Issue {0} , is created based on client request and packing items.".format(material_issue.name),
+								title="Stock Entry is created",
+								indicator="green",
+								alert=True)		
 
 	def on_cancel(self):
 		stock_entry_docstatus = frappe.db.get_value('Stock Entry', self.stock_entry, 'docstatus')
@@ -443,10 +449,10 @@ def make_stock_entry(source_name, target_doc=None):
 
 		target.client_request_material_issue=source.name
 		print('source.material_request_type',source.material_request_type)
-		target.purpose = source.material_request_type
+		target.purpose = 'Material Issue'
 		target.stock_entry_type='Material Issue'
 		target.run_method("calculate_rate_and_amount")
-		target.set_stock_entry_type()
+		# target.set_stock_entry_type()
 		target.set_job_card_data()
 
 
