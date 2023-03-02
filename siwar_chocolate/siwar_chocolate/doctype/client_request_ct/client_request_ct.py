@@ -103,9 +103,9 @@ class ClientRequestCT(Document):
 		total_deposit=0
 		total_rent_amt=0
 		for tray_item in self.tray_items:
-			print('tray_item',tray_item,tray_item.get('deposit_amount'),tray_item.get('rent_amount'),total_rent_amt)
-			total_deposit=(total_deposit+(tray_item.get('deposit_amount')*tray_item.qty))
-			total_rent_amt=(total_rent_amt+(tray_item.get('rent_amount')*tray_item.qty))
+			print('tray_item',tray_item,tray_item.get('deposit_rate'),tray_item.get('rent_rate'),total_rent_amt,tray_item.qty)
+			total_deposit=(total_deposit+(tray_item.get('deposit_rate')*tray_item.qty))
+			total_rent_amt=(total_rent_amt+(tray_item.get('rent_rate')*tray_item.qty))
 		print('----')
 		print(self.total_rent_amt,total_rent_amt)
 		self.total_rent_amt=total_rent_amt
@@ -314,8 +314,8 @@ class ClientRequestCT(Document):
 				booked_tray_which_will_be_available=tray['qty']+booked_tray_which_will_be_available
 		
 		qty=args.get("qty") or 1 
-		rent_amount= frappe.db.get_value('Item', item, 'rent_cf')*qty
-		deposit_amount=frappe.db.get_value('Item', item, 'deposit_cf')*qty
+		rent_rate= frappe.db.get_value('Item', item, 'rent_cf')*qty
+		deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')*qty
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
@@ -323,8 +323,8 @@ class ClientRequestCT(Document):
 			 'booked_tray_which_will_be_available':booked_tray_which_will_be_available,
 			 'total_available_qty':(available_qty+booked_tray_which_will_be_available),
 			 'qty':qty , #should not be > Total Available Qty on Delivery Date
-			 'rent_amount':rent_amount,
-			 'deposit_amount':deposit_amount
+			 'rent_rate':rent_rate,
+			 'deposit_rate':deposit_rate
 		}
 
 		return ret_item			
