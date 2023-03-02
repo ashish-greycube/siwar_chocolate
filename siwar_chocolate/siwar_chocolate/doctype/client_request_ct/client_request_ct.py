@@ -702,7 +702,8 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 		outstanding_amount = doc.outstanding_amount
 	else:
 		if party_account_currency == doc.company_currency:
-			grand_total = flt(doc.get("base_rounded_total") or doc.base_grand_total)
+			# siwar changes
+			grand_total = flt(doc.get("base_rounded_total") or doc.outstanding_amount)
 		else:
 			grand_total = flt(doc.get("rounded_total") or doc.grand_total)
 		outstanding_amount = grand_total - flt(doc.advance_paid)
@@ -765,7 +766,7 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 		# siwari change
 		pass
 
-
+	pe.client_request_ct=dn
 	pe.setup_party_account_field()
 	pe.set_missing_values()
 	if party_account and bank:
@@ -776,8 +777,11 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 
 def find_payment_etnry_linked_with_client_request(client_request):
 	total_paid_amount=0
-	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request]}, fields=['name', 'paid_amount'])
+	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request],'docstatus':1}, fields=['name', 'paid_amount'])
+	print('pe_list',pe_list)
 	for pe in pe_list:
-		if pe.paid_amont:
-			total_paid_amount=total_paid_amount+pe.paid_amont
+		print(pe,'pe',pe['paid_amount'])
+		print(pe.get('paid_amont'))
+		if pe['paid_amount']:
+			total_paid_amount=total_paid_amount+pe['paid_amount']
 	return total_paid_amount
