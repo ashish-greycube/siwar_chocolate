@@ -328,7 +328,7 @@ class ClientRequestCT(Document):
 		else:
 			deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
 		
-			ret_item = {
+		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
 			 'already_booked_qty':already_booked_qty or 0,
