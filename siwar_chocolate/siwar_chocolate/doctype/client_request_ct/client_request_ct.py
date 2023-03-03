@@ -568,14 +568,17 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	doclist.save()
 	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
+	print('-'*100)
 	print('doclist.advances',doclist.advances)
 	if len(doclist.advances)>0:
 		for advance in (doclist.advances or []) :
 			if advance.reference_name:
 				client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
-				if client_request_ct:
+				print('client_request_ct',client_request_ct)
+				if not client_request_ct:
 					doclist.advances.remove(advance)
 		doclist.save()
+	print('doclist.advances',doclist.advances)
 	return doclist	
 
 @frappe.whitelist()	
