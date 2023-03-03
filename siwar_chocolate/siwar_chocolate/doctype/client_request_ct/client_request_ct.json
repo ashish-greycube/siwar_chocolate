@@ -31,10 +31,14 @@
   "not_confirmed_crt",
   "shipment_type_section",
   "delivery",
+  "column_break_koucu",
+  "delivery_rate",
   "column_break_phspu",
   "pickup",
   "supervision_status_section",
   "supervision",
+  "column_break_ra55g",
+  "supervision_rate",
   "column_break_r7k3z",
   "no_supervision",
   "pickup_delivery_times_section",
@@ -700,6 +704,24 @@
    "fieldtype": "Table",
    "label": "Packing Item",
    "options": "Client Request CT Packing Item"
+  },
+  {
+   "fieldname": "column_break_koucu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "delivery_rate",
+   "fieldtype": "Currency",
+   "label": "Delivery Rate"
+  },
+  {
+   "fieldname": "column_break_ra55g",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "supervision_rate",
+   "fieldtype": "Currency",
+   "label": "Supervision Rate"
   }
  ],
  "is_submittable": 1,
@@ -709,7 +731,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-03-02 11:53:54.790678",
+ "modified": "2023-03-02 15:59:10.668904",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

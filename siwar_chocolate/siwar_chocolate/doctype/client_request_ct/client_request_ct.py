@@ -279,6 +279,7 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		item = args['item_code']
+		delivery_rate_from_user=args['delivery_rate_from_user']
 
 		if item == delivery_item or item == supervision_item :
 			return
@@ -320,9 +321,14 @@ class ClientRequestCT(Document):
 				booked_tray_which_will_be_available=tray['qty']+booked_tray_which_will_be_available
 		
 		qty=args.get("qty") or 1 
-		rent_rate= frappe.db.get_value('Item', item, 'rent_cf')*qty
-		deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')*qty
-		ret_item = {
+		rent_rate= frappe.db.get_value('Item', item, 'rent_cf')
+
+		if delivery_rate_from_user >0:
+			deposit_rate=delivery_rate_from_user
+		else:
+			deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
+		
+			ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
 			 'already_booked_qty':already_booked_qty or 0,
@@ -491,6 +497,7 @@ def make_stock_entry(source_name, target_doc=None):
 	
 	frappe.db.set_value('Client Request CT', source_name, 'stock_entry', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Under Preparation')
+	doclist.submit()
 	return doclist
 
 
@@ -516,6 +523,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.is_pos = 0
 		target.ignore_pricing_rule = 1
 		target.flags.ignore_permissions = True
+		target.allocate_advances_automatically=1
 		target.run_method("set_missing_values")
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
@@ -560,6 +568,14 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	doclist.save()
 	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
+	print('doclist.advances',doclist.advances)
+	if len(doclist.advances)>0:
+		for advance in (doclist.advances or []) :
+			if advance.reference_name:
+				client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
+				if client_request_ct:
+					doclist.advances.remove(advance)
+		doclist.save()
 	return doclist	
 
 @frappe.whitelist()	

@@ -29,7 +29,7 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Booked Days Before",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "default": "3",
@@ -38,7 +38,7 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Booked Days After",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "delivery_item",
@@ -92,7 +92,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-03-01 09:33:32.328203",
+ "modified": "2023-03-03 07:22:05.737363",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",
