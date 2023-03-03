@@ -487,7 +487,7 @@ frappe.ui.form.on('Client Request CT', {
 					for (let i = 0; i < frm.doc.items.length; i++) {
 						if (frm.doc.items[i].item_code == supervision_item) {
 							found = true
-							frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", area_for_calculation_cf);
+							frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", frm.doc.supervision_rate);
 							break;
 						}
 					}
