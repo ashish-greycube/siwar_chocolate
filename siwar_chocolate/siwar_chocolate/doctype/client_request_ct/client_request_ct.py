@@ -525,7 +525,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.is_pos = 0
 		target.ignore_pricing_rule = 1
 		target.flags.ignore_permissions = True
-		target.allocate_advances_automatically=1
+		# target.allocate_advances_automatically=1
 		target.run_method("set_missing_values")
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
@@ -570,22 +570,20 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	doclist.save()
 	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
-	print('-'*100)
-	print('doclist.advances',doclist.advances)
-	if len(doclist.advances)>0:
-		# advances = []
-		for advance in (doclist.advances or []) :
-			if advance.reference_name:
-				client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
-				print('bbclient_request_ct',client_request_ct)
-				if client_request_ct=='' or client_request_ct == None:
-					print('22client_request_ct11',client_request_ct)
-					doclist.remove(advance)
-					# advances.append(advance)
-		# doclist.advances=[]			
-		# doclist.advances=advances
-		doclist.save()
-	print('doclist.advances',doclist.advances)
+	# print('-'*100)
+	# print('doclist.advances',doclist.advances)
+	# if len(doclist.advances)>0:
+	# 	# advances = []
+	# 	for advance in (doclist.advances or []) :
+	# 		print('a',advance.)
+	# 		if advance.reference_name:
+	# 			client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
+	# 			print('bbclient_request_ct',client_request_ct)
+	# 			if client_request_ct=='' or client_request_ct == None:
+	# 				print('22client_request_ct11',client_request_ct)
+	# 				doclist.remove(advance)
+	# 	doclist.save()
+	# print('doclist.advances',doclist.advances)
 	return doclist	
 
 @frappe.whitelist()	
