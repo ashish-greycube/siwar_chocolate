@@ -1,9 +1,6 @@
 // Copyright (c) 2020, GreyCube Technologies and contributors
 // For license information, please see license.txt
-{
-	%
-	include 'erpnext/selling/sales_common.js' %
-}
+{% include 'erpnext/selling/sales_common.js' %}
 
 frappe.ui.form.on('Client Request CT', {
 	setup: function (frm) {
