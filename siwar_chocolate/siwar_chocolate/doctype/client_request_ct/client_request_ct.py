@@ -279,7 +279,9 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		item = args['item_code']
-		delivery_rate_from_user=args['delivery_rate_from_user']
+		delivery_rate_from_user=0
+		if args['delivery_rate_from_user']:
+			delivery_rate_from_user=args['delivery_rate_from_user']
 
 		if item == delivery_item or item == supervision_item :
 			return
@@ -571,12 +573,14 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	print('-'*100)
 	print('doclist.advances',doclist.advances)
 	if len(doclist.advances)>0:
+		advances = []
 		for advance in (doclist.advances or []) :
 			if advance.reference_name:
 				client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
 				print('client_request_ct',client_request_ct)
-				if not client_request_ct:
-					doclist.advances.remove(advance)
+				if client_request_ct:
+					advances.append(advance)
+		doclist.advances=advances
 		doclist.save()
 	print('doclist.advances',doclist.advances)
 	return doclist	
