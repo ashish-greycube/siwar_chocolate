@@ -14,6 +14,7 @@ from frappe.utils import get_link_to_form,flt
 from six import string_types
 from frappe.utils import add_days
 from frappe.utils import cint
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_party_details
 
 
 class ClientRequestCT(Document):
@@ -674,87 +675,41 @@ def make_jv_entry(dt,dn):
 	return journal_entry.as_dict()	
 
 @frappe.whitelist()
-def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
+def get_mode_of_payment_for_which_ref_is_required(company):
+	mode_of_payment_for_which_ref_is_required=[]
+	from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
+	list_of_mop=frappe.db.get_all('Mode of Payment', filters={'enabled': 1},fields=['name', 'type']) 
+	print(list_of_mop,list_of_mop)
+	for mop in list_of_mop:
+		bank=get_default_bank_cash_account(company=company, account_type=None,mode_of_payment=mop.name)
+		print(company,mop,bank)	
+		if bank.account_type=='Bank':
+			mode_of_payment_for_which_ref_is_required.append(mop.name)
+	return mode_of_payment_for_which_ref_is_required
+
+@frappe.whitelist()
+def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,reference_no=None,reference_date=None,party_amount=None, bank_account=None, bank_amount=None):
 	from erpnext.accounts.party import get_party_account
 	from erpnext.accounts.utils import get_account_currency
 	from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 	from erpnext.accounts.doctype.bank_account.bank_account import get_party_bank_account
 	doc = frappe.get_doc(dt, dn)
 	# siwari change
-	dt="Sales Order"
-
-	if dt in ("Sales Order", "Purchase Order") and flt(doc.per_billed, 2) > 0:
-		frappe.throw(_("Can only make payment against unbilled {0}").format(dt))
-
-	if dt in ("Sales Invoice", "Sales Order"):
-		party_type = "Customer"
-	elif dt in ("Purchase Invoice", "Purchase Order"):
-		party_type = "Supplier"
-	elif dt in ("Expense Claim", "Employee Advance"):
-		party_type = "Employee"
-	elif dt in ("Fees"):
-		party_type = "Student"
-
-	# party account
-	if dt == "Sales Invoice":
-		party_account = get_party_account_based_on_invoice_discounting(dn) or doc.debit_to
-	elif dt == "Purchase Invoice":
-		party_account = doc.credit_to
-	elif dt == "Fees":
-		party_account = doc.receivable_account
-	elif dt == "Employee Advance":
-		party_account = doc.advance_account
-	elif dt == "Expense Claim":
-		party_account = doc.payable_account
-	else:
-		party_account = get_party_account(party_type, doc.get(party_type.lower()), doc.company)
-
-	if dt not in ("Sales Invoice", "Purchase Invoice"):
-		party_account_currency = get_account_currency(party_account)
-	else:
-		party_account_currency = doc.get("party_account_currency") or get_account_currency(party_account)
-
-	# payment type
-	if (dt == "Sales Order" or (dt in ("Sales Invoice", "Fees") and doc.outstanding_amount > 0)) \
-		or (dt=="Purchase Invoice" and doc.outstanding_amount < 0):
-			payment_type = "Receive"
-	else:
-		payment_type = "Pay"
-
-	# amounts
+	party_type = "Customer"
+	party_account = get_party_account(party_type, doc.get(party_type.lower()), doc.company)
+	payment_type = "Receive"
+	party_account_currency = get_account_currency(party_account)
 	grand_total = outstanding_amount = 0
-	if party_amount:
-		grand_total = outstanding_amount = party_amount
-	elif dt in ("Sales Invoice", "Purchase Invoice"):
-		if party_account_currency == doc.company_currency:
-			grand_total = doc.base_rounded_total or doc.base_grand_total
-		else:
-			grand_total = doc.rounded_total or doc.grand_total
-		outstanding_amount = doc.outstanding_amount
-	elif dt in ("Expense Claim"):
-		grand_total = doc.total_sanctioned_amount + doc.total_taxes_and_charges
-		outstanding_amount = doc.grand_total \
-			- doc.total_amount_reimbursed
-	elif dt == "Employee Advance":
-		grand_total = doc.advance_amount
-		outstanding_amount = flt(doc.advance_amount) - flt(doc.paid_amount)
-	elif dt == "Fees":
-		grand_total = doc.grand_total
-		outstanding_amount = doc.outstanding_amount
-	else:
-		if party_account_currency == doc.company_currency:
-			# siwar changes
-			grand_total = flt(doc.get("base_rounded_total") or doc.outstanding_amount)
-		else:
-			grand_total = flt(doc.get("rounded_total") or doc.grand_total)
+	if party_account_currency == doc.company_currency:
+		# siwar changes
+		grand_total = flt(doc.get("base_rounded_total") or doc.outstanding_amount)	
 		outstanding_amount = grand_total - flt(doc.advance_paid)
-
 	# bank or cash
-	bank = get_default_bank_cash_account(doc.company, "Bank", mode_of_payment=doc.get("mode_of_payment"),
+	bank = get_default_bank_cash_account(doc.company, "Bank", mode_of_payment=mode_of_payment,
 		account=bank_account)
 
 	if not bank:
-		bank = get_default_bank_cash_account(doc.company, "Cash", mode_of_payment=doc.get("mode_of_payment"),
+		bank = get_default_bank_cash_account(doc.company, "Cash", mode_of_payment=mode_of_payment,
 			account=bank_account)
 
 	paid_amount = received_amount = 0
@@ -778,42 +733,39 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 	pe.payment_type = payment_type
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
-	pe.posting_date = nowdate()
-	pe.mode_of_payment = doc.get("mode_of_payment")
+	pe.posting_date = posting_date or nowdate()
+	pe.mode_of_payment =mode_of_payment 
 	pe.party_type = party_type
 	pe.party = doc.get(scrub(party_type))
 	pe.contact_person = doc.get("contact_person")
 	pe.contact_email = doc.get("contact_email")
-	pe.ensure_supplier_is_not_blocked()
-
-	pe.paid_from = party_account if payment_type=="Receive" else bank.account
-	pe.paid_to = party_account if payment_type=="Pay" else bank.account
-	pe.paid_from_account_currency = party_account_currency \
-		if payment_type=="Receive" else bank.account_currency
-	pe.paid_to_account_currency = party_account_currency if payment_type=="Pay" else bank.account_currency
-	pe.paid_amount = paid_amount
+	pe.paid_from = party_account 
+	# pe.paid_from_account_balance=flt(get_party_details(pe.company, pe.party_type, pe.party, pe.posting_date).get("account_balance")) or 0.0
+	pe.paid_to = bank.account
+	# pe.paid_from_account_currency = party_account_currency
+	pe.paid_amount = flt(user_paid_amount) or paid_amount
 	pe.received_amount = received_amount
 	pe.letter_head = doc.get("letter_head")
 
-	if pe.party_type in ["Customer", "Supplier"]:
+	if pe.party_type =="Customer":
 		bank_account = get_party_bank_account(pe.party_type, pe.party)
 		pe.set("bank_account", bank_account)
 		pe.set_bank_account_data()
 
-	# only Purchase Invoice can be blocked individually
-	if doc.doctype == "Purchase Invoice" and doc.invoice_is_blocked():
-		frappe.msgprint(_('{0} is on hold till {1}'.format(doc.name, doc.release_date)))
-	else:
-		# siwari change
-		pass
-
 	pe.client_request_ct=dn
+	if reference_no:
+		pe.reference_no=reference_no
+	if reference_date:
+		pe.reference_date=reference_date	
 	pe.setup_party_account_field()
 	pe.set_missing_values()
 	if party_account and bank:
 		pe.set_exchange_rate()
 		pe.set_amounts()
-	return pe
+	pe.flags.ignore_permission
+	pe.save()
+	pe.submit()
+	return pe.name
 
 
 def find_payment_etnry_linked_with_client_request(client_request):

@@ -463,6 +463,116 @@ frappe.ui.form.on('Client Request CT', {
 			frm.add_custom_button(__('Reserve Tray'), () => frm.trigger('reserve_tray'));
 			frm.add_custom_button(__('Cancel Tray'), () => frm.trigger('cancel_tray'));
 		}
+		if (frm.is_new() == undefined && frm.doc.outstanding_amount>0) {
+			frm.add_custom_button(__('Payment'), () => frm.trigger('make_payment_entry_dialog'));
+		}		
+	},
+	make_payment_entry_dialog: function (frm) {
+
+		frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_mode_of_payment_for_which_ref_is_required',{
+				company:frm.doc.company
+		})
+		.then(records => {
+			console.log(records);
+			let list_of_mop_for_which_ref_is_required=records.message
+			console.log('list_of_mop_for_which_ref_is_required',list_of_mop_for_which_ref_is_required,typeof(list_of_mop_for_which_ref_is_required))
+			let mop_condition=$.map(list_of_mop_for_which_ref_is_required, (row, idx)=>{ console.log(row);return "(doc.mode_of_payment =='"+row+"')" })
+			let mandatory_condition="eval:"+mop_condition.join('||')
+			console.log(mandatory_condition)
+			let d = new frappe.ui.Dialog({
+				title: 'Enter Payment Details',
+				fields: [
+					{
+						label: 'Posting Date',
+						fieldname: 'posting_date',
+						fieldtype: 'Date',
+						default:'Today',
+					},
+					{
+						label: 'Party',
+						fieldname: 'party',
+						fieldtype: 'Link',
+						options: 'Customer',
+						default:frm.doc.customer,
+						read_only:1
+					},
+					{
+						label: 'Paid Amount',
+						fieldname: 'paid_amount',
+						fieldtype: 'Currency',
+						default: frm.doc.outstanding_amount
+					},
+					{
+						label: 'Mode of Payment',
+						fieldname: 'mode_of_payment',
+						fieldtype: 'Link',
+						options: 'Mode of Payment',
+						reqd :1,
+					},
+					{
+						label: 'Cheque/Reference No',
+						fieldname: 'reference_no',
+						fieldtype: 'Data',
+						mandatory_depends_on: mandatory_condition,
+						depends_on:mandatory_condition
+						
+						
+					},
+					{
+						label: 'Cheque/Reference Date',
+						fieldname: 'reference_date',
+						fieldtype: 'Date',
+						mandatory_depends_on: mandatory_condition,
+						depends_on:mandatory_condition
+						
+					},
+					{
+						label: 'Client Request',
+						fieldname: 'client_request_ct',
+						fieldtype: 'Data',
+						default: frm.doc.name,
+						read_only:1					
+						
+					},				
+					
+				],
+				primary_action_label: 'Create Payment Entry',
+				primary_action: function(values) {
+					let user_paid_amount=values.paid_amount
+					if (user_paid_amount==0 || user_paid_amount > frm.doc.outstanding_amount) {
+						var msg = __("Incorrect Paid Amount: {0}",[user_paid_amount])
+					frappe.throw(msg);						
+					}
+					frappe.call({
+						
+						method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",
+						args: {
+						"dt": cur_frm.doc.doctype,
+						"dn": cur_frm.doc.name,
+						"posting_date":values.posting_date,
+						"user_paid_amount":user_paid_amount,
+						"mode_of_payment":values.mode_of_payment,
+						"reference_no":values.reference_no,
+						"reference_date":values.reference_date
+						},					
+						callback: function(response) {
+							console.log('response',response)
+							if (response.message) {
+								let url_list = '<a href="/app/payment-entry/'+ response.message + '" target="_blank">' + response.message + '</a><br>'
+								frappe.show_alert({
+									title:__('Payment Entry is created'),
+									message: __(url_list),
+									indicator:'green'
+								}, 12);													
+							}
+						}
+					});
+					// close the dialog box
+					d.hide();
+				},
+			});
+			d.show();
+		});
 	},
 	delivery_rate: function (frm) {
 		if (frm.doc.delivery_rate && frm.doc.delivery_rate > 0) {
@@ -546,9 +656,9 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 		this.frm.add_custom_button(__('Gift Qty'), () => this.make_stock_entry_for_gift_qty(), __('Create'));
 		this.frm.add_custom_button(__('Return Qty'), () => this.make_stock_entry_for_return_qty(), __('Create'));
 
-		if (this.frm.doc.status == 'Draft' && this.frm.is_new() == undefined) {
-			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
-		}
+		// if (this.frm.doc.status == 'Draft' && this.frm.is_new() == undefined) {
+		// 	this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
+		// }
 
 		if (flt(doc.docstatus) == 1) {
 			// var show_tray_return_dialog = me.frm.doc.tray_items.filter(d => d.qty-d.tray_returned_qty>0)
@@ -565,7 +675,7 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 
 
 
-			this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
+			// this.frm.add_custom_button(__('Payment'), () => this.make_payment_entry(), __('Create'));
 			if (doc.stock_entry == undefined || doc.stock_entry == '') {
 				this.frm.add_custom_button(__("Issue Material"), () => this.make_stock_entry(this.frm), __('Create'));
 			}
@@ -715,19 +825,19 @@ erpnext.selling.ClientRequestController = erpnext.selling.SellingController.exte
 	// 		}
 	// 	});		
 	// },
-	make_payment_entry: function () {
-		return frappe.call({
-			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",
-			args: {
-				"dt": cur_frm.doc.doctype,
-				"dn": cur_frm.doc.name
-			},
-			callback: function (r) {
-				var doclist = frappe.model.sync(r.message);
-				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
-			}
-		});
-	},
+	// make_payment_entry: function () {
+	// 	return frappe.call({
+	// 		method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",
+	// 		args: {
+	// 			"dt": cur_frm.doc.doctype,
+	// 			"dn": cur_frm.doc.name
+	// 		},
+	// 		callback: function (r) {
+	// 			var doclist = frappe.model.sync(r.message);
+	// 			frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+	// 		}
+	// 	});
+	// },
 	make_stock_entry_for_gift_qty: function (frm) {
 		return frappe.call({
 			method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.make_stock_entry_for_gift_qty",
