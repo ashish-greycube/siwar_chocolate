@@ -506,6 +506,26 @@ def make_stock_entry(source_name, target_doc=None):
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	def postprocess(source, target):
+		# set advance logic
+		pe_details=frappe.db.get_list('Payment Entry',filters={'client_request_ct': source_name,'docstatus':1},
+					fields=['paid_amount','remarks','name','source_exchange_rate'],as_list=False)
+		print('pe_details',pe_details)
+		if len(pe_details)>0:
+			target.set("advances", [])
+			for advance in (pe_details or []) :
+				print('dac',advance)
+				advance_row = {
+					"doctype": target.doctype + " Advance",
+					"reference_type": 'Payment Entry',
+					"reference_name": advance.name,
+					"reference_row": None,
+					"remarks": advance.remarks,
+					"advance_amount": flt(advance.paid_amount),
+					"allocated_amount": advance.paid_amount,
+					"ref_exchange_rate": flt(advance.source_exchange_rate),  # exchange_rate of advance entry
+				}				
+				target.append("advances", advance_row)
+		print(target.advances)
 		if source.combine_all_as_mixed_chocolate==1:
 			rate=0
 			for item in source.get('items'):
@@ -518,14 +538,15 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.linked_client_request=source.name
 		set_missing_values(source, target)
 		#Get the advance paid Journal Entries in Sales Invoice Advance
-		if target.get("allocate_advances_automatically"):
-			target.set_advances()	
+		# if target.get("allocate_advances_automatically"):
+		# 	target.set_advances()	
 
 	def set_missing_values(source, target):
 		target.is_pos = 0
 		target.ignore_pricing_rule = 1
 		target.flags.ignore_permissions = True
 		# target.allocate_advances_automatically=1
+
 		target.run_method("set_missing_values")
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
@@ -567,23 +588,13 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	}, target_doc,postprocess,ignore_permissions=ignore_permissions)
 
 	#change due to siwari	
+
+		
 	doclist.save()
+
 	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
-	# print('-'*100)
-	# print('doclist.advances',doclist.advances)
-	# if len(doclist.advances)>0:
-	# 	# advances = []
-	# 	for advance in (doclist.advances or []) :
-	# 		print('a',advance.)
-	# 		if advance.reference_name:
-	# 			client_request_ct = frappe.db.get_value('Payment Entry', advance.reference_name, 'client_request_ct')
-	# 			print('bbclient_request_ct',client_request_ct)
-	# 			if client_request_ct=='' or client_request_ct == None:
-	# 				print('22client_request_ct11',client_request_ct)
-	# 				doclist.remove(advance)
-	# 	doclist.save()
-	# print('doclist.advances',doclist.advances)
+
 	return doclist	
 
 @frappe.whitelist()	
