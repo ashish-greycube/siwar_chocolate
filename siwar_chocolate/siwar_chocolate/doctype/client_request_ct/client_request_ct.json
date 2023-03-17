@@ -645,25 +645,29 @@
    "fieldname": "total_deposit_in_grand",
    "fieldtype": "Currency",
    "label": "Total Deposit",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "final_total",
    "fieldtype": "Currency",
    "label": "Final Total",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_paid",
    "fieldtype": "Currency",
    "label": "Total Paid",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "Outstanding Amount",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "crt_discount_percentage",
@@ -680,13 +684,15 @@
    "fieldname": "crt_amount_after_discount",
    "fieldtype": "Currency",
    "label": "Amount After Discount",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "crt_net_total",
    "fieldtype": "Currency",
    "label": "Net Total",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.is_tray_required ==1",
@@ -731,7 +737,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-03-03 10:14:42.146886",
+ "modified": "2023-03-17 07:00:56.183597",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
