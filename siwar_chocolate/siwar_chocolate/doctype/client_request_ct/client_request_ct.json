@@ -12,12 +12,11 @@
   "phone_no2",
   "assign_to",
   "client_request_date",
-  "customer_district_cf",
+  "delivery_date",
   "selling_price_list",
   "remarks",
   "column_break_7",
   "status",
-  "delivery_date",
   "\u0645\u0644\u0627\u062d\u0638\u0627\u062a",
   "client_request_type_section",
   "showroom_crt",
@@ -30,16 +29,14 @@
   "column_break_3z2ep",
   "not_confirmed_crt",
   "shipment_type_section",
+  "receiving_status",
   "delivery",
-  "column_break_koucu",
   "pickup",
-  "column_break_phspu",
   "delivery_rate",
-  "supervision_status_section",
+  "column_break_koucu",
+  "supervision_status",
   "supervision",
-  "column_break_ra55g",
   "no_supervision",
-  "column_break_r7k3z",
   "supervision_rate",
   "pickup_delivery_times_section",
   "pickup_delivery_times_select",
@@ -50,15 +47,15 @@
   "column_break_k5kos",
   "pdt_5_pm",
   "customer_city_section",
+  "riyadh",
+  "jadda",
   "customer_city_cf",
   "column_break_vk2e3",
   "dammam_city",
-  "column_break_nw6nz",
   "al_medina",
-  "column_break_tn0wr",
-  "jadda",
-  "column_break_nvmll",
-  "riyadh",
+  "column_break_nw6nz",
+  "district",
+  "customer_district_cf",
   "section_break_ch0m8",
   "\u0635\u0648\u0627\u0646\u064a_\u062a\u0634\u0648\u0643\u0644\u062a",
   "\u0635\u0648\u0627\u0646\u064a_\u0627\u0644\u0645\u0627\u0644\u062d",
@@ -75,13 +72,12 @@
   "combine_all_as_mixed_chocolate",
   "items",
   "section_break_15",
-  "total_section_filler",
-  "column_break_16",
   "grand_total",
   "crt_net_total",
   "crt_discount_percentage",
   "crt_discount_amount",
   "crt_amount_after_discount",
+  "column_break_16",
   "total_deposit_in_grand",
   "final_total",
   "total_paid",
@@ -338,7 +334,7 @@
   {
    "fieldname": "tray_details_section",
    "fieldtype": "Section Break",
-   "label": "Tray Details"
+   "label": "Tray Items"
   },
   {
    "depends_on": "eval:doc.is_tray_required ==1",
@@ -384,7 +380,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Customer City CF",
+   "label": "Customer City",
    "options": "\n\u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a UAE\n\u0642\u0637\u0631  Qatar\n\u0627\u0644\u0628\u062d\u0631\u064a\u0646  Bahrain\n\u0627\u0644\u0643\u0648\u064a\u062a  Kuwait\n\u0627\u0644\u0631\u064a\u0627\u0636 Riyadh\n\u062c\u062f\u0629 jadda\n\u062d\u0641\u0631 \u0627\u0644\u0628\u0627\u0637\u0646 Hafr Albaten\n\u0648\u0627\u062f\u064a \u0627\u0644\u062f\u0648\u0627\u0633\u0631 Wadi Aldawaser\n\u0627\u0644\u062f\u0645\u0627\u0645 Dammam\n\u0623\u0628\u0647\u0627 Abha\n\u0627\u0644\u0642\u0635\u064a\u0645 Qassim\n\u0645\u0643\u0629 \u0627\u0644\u0645\u0643\u0631\u0645\u0629\u00a0Makkah\n\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0645\u0646\u0648\u0631\u0629 Al-Medina\n\u0627\u0644\u062e\u0631\u062c Kharj\n\u0627\u0644\u0628\u0627\u062d\u0629 Al-Baha\n\u0627\u0644\u0623\u062d\u0633\u0627\u0621 Al Ahsa\n\u0646\u062c\u0631\u0627\u0646 Najran\n\u0627\u0644\u062e\u0628\u0631 Khobar\n\u0627\u0644\u062c\u0648\u0641 Al-Jouf\n\u062c\u0627\u0632\u0627\u0646 Jazan\n\u0639\u0633\u064a\u0631 Aseer.\n\u062a\u0628\u0648\u0643 Tabouk\n\u062d\u0627\u0626\u0644 Hail\n\u0627\u0644\u062f\u0648\u0627\u062f\u0645\u064a Dawadmi\n\u0633\u0644\u064a\u0644 Saleel\n\u0639\u0641\u064a\u0641 Afeef\n\u0627\u0644\u062f\u0631\u0639\u064a\u0629 Diriyah\n\u063a\u0627\u062a Ghat\n\u0627\u0644\u0632\u0641\u0644\u064a Zulfi\n\u0645\u0627\u0631\u0627\u062a Marat\n\u0627\u0644\u0645\u062c\u0645\u0639\u0629 Majmaah\n\u0635\u0627\u062f\u0642 Thadeq\n\u0627\u0644\u0634\u0627\u0631\u0642\u0629 Shaqraa\n\u0627\u0644\u0637\u0627\u0626\u0641 Taef\n\u0627\u0644\u0642\u0637\u064a\u0641 Qateef\n\u0627\u0644\u062c\u0628\u064a\u0644 Jubail\n\u0627\u0644\u0628\u0642\u064a\u0642 Beqaiq\n\u064a\u0646\u0628\u0639 Yanbu\n\u0628\u062f\u0631 Badr",
    "print_hide": 1,
    "reqd": 1,
@@ -406,8 +402,10 @@
    "label": "\u0645\u0644\u0627\u062d\u0638\u0627\u062a"
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_ch0m8",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Tray Details"
   },
   {
    "fieldname": "\u0635\u0648\u0627\u0646\u064a_\u062a\u0634\u0648\u0643\u0644\u062a",
@@ -419,7 +417,7 @@
   {
    "fieldname": "\u0635\u0648\u0627\u0646\u064a_\u0627\u0644\u0645\u0627\u0644\u062d",
    "fieldtype": "Small Text",
-   "label": "salted trays",
+   "label": "Salted trays",
    "translatable": 1
   },
   {
@@ -492,8 +490,7 @@
   },
   {
    "fieldname": "shipment_type_section",
-   "fieldtype": "Section Break",
-   "label": "Shipment Type"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -502,29 +499,16 @@
    "label": "Delivery"
   },
   {
-   "fieldname": "column_break_phspu",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "fieldname": "pickup",
    "fieldtype": "Check",
    "label": "Pickup"
   },
   {
-   "fieldname": "supervision_status_section",
-   "fieldtype": "Section Break",
-   "label": "Supervision Status"
-  },
-  {
    "default": "0",
    "fieldname": "supervision",
    "fieldtype": "Check",
    "label": "Supervision"
-  },
-  {
-   "fieldname": "column_break_r7k3z",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -548,7 +532,7 @@
   {
    "fieldname": "customer_city_section",
    "fieldtype": "Section Break",
-   "label": "Customer City"
+   "label": "City"
   },
   {
    "fieldname": "column_break_nw6nz",
@@ -561,18 +545,10 @@
    "label": "Al-Medina"
   },
   {
-   "fieldname": "column_break_tn0wr",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "fieldname": "jadda",
    "fieldtype": "Check",
    "label": "Jadda"
-  },
-  {
-   "fieldname": "column_break_nvmll",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -625,7 +601,7 @@
    "depends_on": "eval:doc.is_tray_required ==1",
    "fieldname": "total_deposit",
    "fieldtype": "Currency",
-   "label": "Total Deposit",
+   "label": "Total Deposit Amount",
    "options": "currency"
   },
   {
@@ -636,10 +612,6 @@
    "label": "Grand Total",
    "options": "currency",
    "read_only": 1
-  },
-  {
-   "fieldname": "total_section_filler",
-   "fieldtype": "Read Only"
   },
   {
    "fieldname": "total_deposit_in_grand",
@@ -663,9 +635,10 @@
    "read_only": 1
   },
   {
+   "bold": 1,
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
-   "label": "Outstanding Amount",
+   "label": "<b>Outstanding Amount</b>",
    "options": "currency",
    "read_only": 1
   },
@@ -690,7 +663,7 @@
   {
    "fieldname": "crt_net_total",
    "fieldtype": "Currency",
-   "label": "Net Total",
+   "label": "Total After Tax",
    "options": "currency",
    "read_only": 1
   },
@@ -698,7 +671,7 @@
    "depends_on": "eval:doc.is_tray_required ==1",
    "fieldname": "total_rent_amt",
    "fieldtype": "Currency",
-   "label": "Total Rent",
+   "label": "Total Rent Amount",
    "options": "currency"
   },
   {
@@ -716,18 +689,31 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.delivery==1",
    "fieldname": "delivery_rate",
    "fieldtype": "Currency",
    "label": "Delivery Rate"
   },
   {
-   "fieldname": "column_break_ra55g",
-   "fieldtype": "Column Break"
-  },
-  {
+   "depends_on": "eval:doc.supervision==1",
    "fieldname": "supervision_rate",
    "fieldtype": "Currency",
    "label": "Supervision Rate"
+  },
+  {
+   "fieldname": "receiving_status",
+   "fieldtype": "Heading",
+   "label": "Receiving Status"
+  },
+  {
+   "fieldname": "supervision_status",
+   "fieldtype": "Heading",
+   "label": "Supervision Status"
+  },
+  {
+   "fieldname": "district",
+   "fieldtype": "Heading",
+   "label": "District"
   }
  ],
  "is_submittable": 1,
@@ -737,7 +723,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-03-17 07:00:56.183597",
+ "modified": "2023-03-25 08:23:19.549148",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

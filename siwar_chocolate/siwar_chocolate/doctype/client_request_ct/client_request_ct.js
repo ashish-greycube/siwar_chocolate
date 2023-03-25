@@ -438,7 +438,7 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	reserve_tray: function (frm) {
 		// get the selected child table rows
-		var selected_rows = frm.fields_dict['tray_items'].grid.get_selected_children();
+		var selected_rows = frm.fields_dict['tray_items'].grid.data
 		if (selected_rows.length == 0) {
 			frappe.show_alert({
 				message: __('Please select tray items for reservation..'),
@@ -619,7 +619,7 @@ frappe.ui.form.on('Client Request CT Tray Item', {
 				args: {
 					"item_code": row.item_code,
 					"qty": row.qty,
-					"delivery_rate_from_user": frm.doc.delivery_rate
+					// "delivery_rate_from_user": frm.doc.delivery_rate
 
 				},
 				callback: function (r) {
@@ -632,6 +632,8 @@ frappe.ui.form.on('Client Request CT Tray Item', {
 			});
 		}
 	},
+	rent_rate: function (frm, cdt, cdn) {caclculate_rent_amount(frm, cdt, cdn)},
+	deposit_rate: function (frm, cdt, cdn) {caclculate_deposit_amount(frm, cdt, cdn)},
 	qty: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		if (row.qty && row.available_qty && (row.qty > row.available_qty)) {
@@ -639,9 +641,21 @@ frappe.ui.form.on('Client Request CT Tray Item', {
 				[row.idx, __(row.doctype), row.item_code, row.qty, row.available_qty])
 			frappe.throw(msg);
 		}
+		caclculate_rent_amount(frm, cdt, cdn)
+		caclculate_deposit_amount(frm, cdt, cdn)
 	}
 })
+var caclculate_rent_amount= function (frm, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	row.rent_amount=flt(row.rent_rate*row.qty)
+	frm.refresh_field('tray_items')
+}
 
+var caclculate_deposit_amount= function (frm, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	row.deposit_amount=flt(row.deposit_rate*row.qty)
+	frm.refresh_field('tray_items')
+}
 erpnext.selling.ClientRequestController = erpnext.selling.SellingController.extend({
 	onload: function (doc, dt, dn) {
 		this._super();

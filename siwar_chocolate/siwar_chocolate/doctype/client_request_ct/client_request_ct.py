@@ -144,7 +144,8 @@ class ClientRequestCT(Document):
 			grand_total= grand_total + client_item.get('amount')
 		self.grand_total=grand_total	
 		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 15
-		self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
+		# self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
+		self.crt_net_total=self.grand_total/((100+net_total_less_percentage)/100)
 		print(net_total_less_percentage,self.crt_net_total)
 		self.crt_amount_after_discount=self.crt_net_total
 		if self.crt_discount_percentage and self.crt_discount_percentage >0:
@@ -280,9 +281,9 @@ class ClientRequestCT(Document):
 			import json
 			args = json.loads(args)				
 		item = args['item_code']
-		delivery_rate_from_user=0
-		if args.get('delivery_rate_from_user'):
-			delivery_rate_from_user=args['delivery_rate_from_user']
+		# delivery_rate_from_user=0
+		# if args.get('delivery_rate_from_user'):
+		# 	delivery_rate_from_user=args['delivery_rate_from_user']
 
 		if item == delivery_item or item == supervision_item :
 			return
@@ -326,10 +327,10 @@ class ClientRequestCT(Document):
 		qty=args.get("qty") or 1 
 		rent_rate= frappe.db.get_value('Item', item, 'rent_cf')
 
-		if delivery_rate_from_user >0:
-			deposit_rate=delivery_rate_from_user
-		else:
-			deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
+		# if delivery_rate_from_user >0:
+		# 	deposit_rate=delivery_rate_from_user
+		# else:
+		deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
 		
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
@@ -339,7 +340,9 @@ class ClientRequestCT(Document):
 			 'total_available_qty':(available_qty+booked_tray_which_will_be_available),
 			 'qty':qty , #should not be > Total Available Qty on Delivery Date
 			 'rent_rate':rent_rate,
-			 'deposit_rate':deposit_rate
+			 'rent_amount': flt(rent_rate*qty),
+			 'deposit_rate':deposit_rate,
+			 'deposit_amount':flt(deposit_rate*qty)
 		}
 
 		return ret_item			
