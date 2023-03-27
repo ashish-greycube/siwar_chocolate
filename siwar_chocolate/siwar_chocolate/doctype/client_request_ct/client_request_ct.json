@@ -244,6 +244,7 @@
    "fieldtype": "Data",
    "label": "Stock Entry Reference",
    "no_copy": 1,
+   "options": "URL",
    "read_only": 1
   },
   {
@@ -252,6 +253,7 @@
    "fieldtype": "Data",
    "label": "Sales Invoice Reference",
    "no_copy": 1,
+   "options": "URL",
    "read_only": 1
   },
   {
@@ -609,7 +611,7 @@
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Grand Total",
+   "label": "Grand Total(including Tax)",
    "options": "currency",
    "read_only": 1
   },
@@ -663,7 +665,7 @@
   {
    "fieldname": "crt_net_total",
    "fieldtype": "Currency",
-   "label": "Total After Tax",
+   "label": "Total Before Tax",
    "options": "currency",
    "read_only": 1
   },
@@ -723,7 +725,7 @@
    "link_fieldname": "client_request_ct"
   }
  ],
- "modified": "2023-03-25 08:23:19.549148",
+ "modified": "2023-03-27 08:45:02.636324",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

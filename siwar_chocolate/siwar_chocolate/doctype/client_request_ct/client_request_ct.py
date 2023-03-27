@@ -155,7 +155,7 @@ class ClientRequestCT(Document):
 			self.crt_discount_percentage=(self.crt_discount_amount/self.crt_net_total)*100
 			self.crt_amount_after_discount=self.crt_net_total-self.crt_discount_amount
 		self.total_deposit_in_grand=self.total_deposit
-		self.final_total=self.crt_amount_after_discount+self.total_deposit_in_grand
+		self.final_total=self.crt_amount_after_discount+((self.crt_amount_after_discount*net_total_less_percentage)/100)+self.total_deposit_in_grand
 		self.total_paid=find_payment_etnry_linked_with_client_request(self.name)
 		self.outstanding_amount=self.final_total-self.total_paid
 
@@ -501,7 +501,7 @@ def make_stock_entry(source_name, target_doc=None):
 
 	doclist.save()
 	
-	frappe.db.set_value('Client Request CT', source_name, 'stock_entry', doclist.name)
+	frappe.db.set_value('Client Request CT', source_name, 'stock_entry', get_url_to_form('Stock Entry',doclist.name))
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Under Preparation')
 	doclist.submit()
 	return doclist
@@ -596,7 +596,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		
 	doclist.save()
 
-	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', doclist.name)
+	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', get_url_to_form('Sales Invoice',doclist.name))
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
 
 	return doclist	
