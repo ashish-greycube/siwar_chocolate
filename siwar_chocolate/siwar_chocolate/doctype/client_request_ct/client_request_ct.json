@@ -26,8 +26,6 @@
   "customer_service_crt",
   "column_break_aed0p",
   "in_call_crt",
-  "column_break_3z2ep",
-  "not_confirmed_crt",
   "shipment_type_section",
   "receiving_status",
   "delivery",
@@ -244,7 +242,6 @@
    "fieldtype": "Data",
    "label": "Stock Entry Reference",
    "no_copy": 1,
-   "options": "URL",
    "read_only": 1
   },
   {
@@ -253,7 +250,6 @@
    "fieldtype": "Data",
    "label": "Sales Invoice Reference",
    "no_copy": 1,
-   "options": "URL",
    "read_only": 1
   },
   {
@@ -481,16 +477,6 @@
    "label": "In Call"
   },
   {
-   "fieldname": "column_break_3z2ep",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "not_confirmed_crt",
-   "fieldtype": "Check",
-   "label": "Not Confirmed Order"
-  },
-  {
    "fieldname": "shipment_type_section",
    "fieldtype": "Section Break"
   },
@@ -604,7 +590,8 @@
    "fieldname": "total_deposit",
    "fieldtype": "Currency",
    "label": "Total Deposit Amount",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "allow_on_submit": 1,
@@ -674,7 +661,8 @@
    "fieldname": "total_rent_amt",
    "fieldtype": "Currency",
    "label": "Total Rent Amount",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_evmxe",
@@ -723,9 +711,17 @@
   {
    "link_doctype": "Payment Entry",
    "link_fieldname": "client_request_ct"
+  },
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "linked_client_request"
+  },
+  {
+   "link_doctype": "Stock Entry",
+   "link_fieldname": "client_request_material_issue"
   }
  ],
- "modified": "2023-03-27 08:45:02.636324",
+ "modified": "2023-03-27 14:35:32.176798",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

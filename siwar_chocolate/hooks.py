@@ -85,6 +85,7 @@ doc_events = {
 	"Stock Entry": {
 		"on_submit": "siwar_chocolate.api.update_client_request_status",
 		"on_cancel": "siwar_chocolate.api.unlink_client_request_from_stock_entry",
+        "on_trash":"siwar_chocolate.api.unlink_client_request_from_stock_entry"
 	},
 	"Sales Invoice": {
 		"on_cancel": "siwar_chocolate.api.unlink_client_request_from_sales_invoice",
@@ -93,6 +94,7 @@ doc_events = {
 	"Payment Entry": {
 		"on_submit": "siwar_chocolate.api.update_client_request_paid_amount",
 		"on_cancel": "siwar_chocolate.api.unlink_client_request_from_payment_entry",
+        "on_trash":"siwar_chocolate.api.unlink_client_request_from_payment_entry"
 	}    	
 }
 

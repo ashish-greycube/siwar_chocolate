@@ -8,7 +8,7 @@ def execute():
     frappe.db.sql("""UPDATE `tabClient Request CT` SET occasion_section_crt = 1 where client_request_type in ('مناسبه Occasion','Occasion Department','عميل مناسبه Occasion')""")
     frappe.db.sql("""UPDATE `tabClient Request CT` SET customer_service_crt = 1 where client_request_type = 'خدمة العملاء C.S'""")
     frappe.db.sql("""UPDATE `tabClient Request CT` SET in_call_crt = 1 where client_request_type = 'in Call'""")    
-    frappe.db.sql("""UPDATE `tabClient Request CT` SET not_confirmed_crt = 1 where client_request_type = 'طلب غير مؤكد ×××Not Confirmed Order×××'""")
+    # frappe.db.sql("""UPDATE `tabClient Request CT` SET not_confirmed_crt = 1 where client_request_type = 'طلب غير مؤكد ×××Not Confirmed Order×××'""")
 
 
     if frappe.db.has_column("Client Request CT", "shipment_type"):                 

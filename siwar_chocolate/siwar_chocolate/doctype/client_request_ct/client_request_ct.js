@@ -112,13 +112,6 @@ frappe.ui.form.on('Client Request CT', {
 			disable_other(frm, curfieldname, grp_name);
 		}
 	},
-	not_confirmed_crt: function (frm) {
-		var curfieldname = 'not_confirmed_crt';
-		var grp_name = 'client_request_type';
-		if (frm.doc.not_confirmed_crt == 1) {
-			disable_other(frm, curfieldname, grp_name);
-		}
-	},
 	// -- customer city group
 	// -- synch with city select
 	dammam_city: function (frm) {
@@ -410,7 +403,7 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	// stop user from  submit whenn client request type is in call or not confirmed.
 	before_submit: function (frm) {
-		if ((frm.doc.in_call_crt) || (frm.doc.not_confirmed_crt)) {
+		if ((frm.doc.in_call_crt) ) {
 			frappe.throw(__('You cannot submit as the client request type is either <b>in call</b> or <b>not confirmed</b>'));
 		}
 	},
@@ -885,7 +878,7 @@ $.extend(cur_frm.cscript, new erpnext.selling.ClientRequestController({
 function disable_other(frm, curfieldname, grp_name) {
 
 	var select_grp_type_values = {
-		"client_request_type": ['showroom_crt', 'occasion_section_crt', 'customer_service_crt', 'in_call_crt', 'not_confirmed_crt'],
+		"client_request_type": ['showroom_crt', 'occasion_section_crt', 'customer_service_crt', 'in_call_crt'],
 		"customer_city_cf": ['dammam_city', 'al_medina', 'jadda', 'riyadh'],
 		"pickup_delivery_times": ['pdt_5_to_7_30_pm', 'pdt_4_pm', 'pdt_5_pm'],
 		"shipment_type": ['delivery', 'pickup'],

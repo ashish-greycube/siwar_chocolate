@@ -8,13 +8,13 @@ from frappe import _, scrub,msgprint
 from frappe.model.document import Document
 from erpnext.controllers.selling_controller import SellingController
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt,get_url_to_form,nowdate,cstr,nowtime,get_link_to_form
+from frappe.utils import flt,nowdate,cstr,nowtime,get_link_to_form
 from erpnext.stock.utils import get_stock_balance
-from frappe.utils import get_link_to_form,flt
 from six import string_types
 from frappe.utils import add_days
 from frappe.utils import cint
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_party_details
+from erpnext.controllers.accounts_controller import get_taxes_and_charges
 
 
 class ClientRequestCT(Document):
@@ -143,7 +143,7 @@ class ClientRequestCT(Document):
 			print(client_item)
 			grand_total= grand_total + client_item.get('amount')
 		self.grand_total=grand_total	
-		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 15
+		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 0
 		# self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
 		self.crt_net_total=self.grand_total/((100+net_total_less_percentage)/100)
 		print(net_total_less_percentage,self.crt_net_total)
@@ -501,7 +501,7 @@ def make_stock_entry(source_name, target_doc=None):
 
 	doclist.save()
 	
-	frappe.db.set_value('Client Request CT', source_name, 'stock_entry', get_url_to_form('Stock Entry',doclist.name))
+	frappe.db.set_value('Client Request CT', source_name, 'stock_entry',doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Under Preparation')
 	doclist.submit()
 	return doclist
@@ -546,6 +546,11 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		# 	target.set_advances()	
 
 	def set_missing_values(source, target):
+		taxes_and_charges=frappe.db.get_all('Sales Taxes and Charges Template',filters={'is_default': 1})
+		target.taxes_and_charges=taxes_and_charges[0].get('name') if len(taxes_and_charges)>0 else None
+		if target.taxes_and_charges:
+			target.taxes = get_taxes_and_charges("Sales Taxes and Charges Template", target.taxes_and_charges)
+
 		target.is_pos = 0
 		target.ignore_pricing_rule = 1
 		target.flags.ignore_permissions = True
@@ -596,7 +601,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		
 	doclist.save()
 
-	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice', get_url_to_form('Sales Invoice',doclist.name))
+	frappe.db.set_value('Client Request CT', source_name, 'sales_invoice',doclist.name)
 	frappe.db.set_value('Client Request CT', source_name, 'status', 'Delivered')
 
 	return doclist	
