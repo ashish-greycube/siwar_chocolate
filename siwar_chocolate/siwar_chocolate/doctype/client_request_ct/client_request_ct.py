@@ -529,7 +529,6 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 					"ref_exchange_rate": flt(advance.source_exchange_rate),  # exchange_rate of advance entry
 				}				
 				target.append("advances", advance_row)
-		print(target.advances)
 		if source.combine_all_as_mixed_chocolate==1:
 			rate=0
 			for item in source.get('items'):
@@ -548,8 +547,11 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	def set_missing_values(source, target):
 		taxes_and_charges=frappe.db.get_all('Sales Taxes and Charges Template',filters={'is_default': 1})
 		target.taxes_and_charges=taxes_and_charges[0].get('name') if len(taxes_and_charges)>0 else None
-		if target.taxes_and_charges:
-			target.taxes = get_taxes_and_charges("Sales Taxes and Charges Template", target.taxes_and_charges)
+		print('target.taxes_and_charges',target.taxes_and_charges)
+		# if target.taxes_and_charges:
+		# 	pass
+		# 	# target.append('taxes', get_taxes_and_charges("Sales Taxes and Charges Template", target.taxes_and_charges))
+		# 	# print('target.taxes',target.taxes)
 
 		target.is_pos = 0
 		target.ignore_pricing_rule = 1
