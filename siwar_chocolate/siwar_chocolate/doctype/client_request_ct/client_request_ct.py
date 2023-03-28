@@ -513,19 +513,25 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		# set advance logic
 		pe_details=frappe.db.get_list('Payment Entry',filters={'client_request_ct': source_name,'docstatus':1},
 					fields=['paid_amount','remarks','name','source_exchange_rate'],as_list=False)
+		client_request_ct=frappe.db.get_value('Client Request CT', source_name, ['final_total', 'total_deposit_in_grand'], as_dict=1)
+		client_request_allocated_amount=client_request_ct.final_total-client_request_ct.total_deposit_in_grand
+
 		print('pe_details',pe_details)
 		if len(pe_details)>0:
 			target.set("advances", [])
 			for advance in (pe_details or []) :
 				print('dac',advance)
+				paid_amount=  client_request_allocated_amount if client_request_allocated_amount < advance.paid_amount else advance.paid_amount
+				print( 'client_request_allocated_amount , advance.paid_amount,paid_amount')
+				print( client_request_allocated_amount , advance.paid_amount,paid_amount)
 				advance_row = {
 					"doctype": target.doctype + " Advance",
 					"reference_type": 'Payment Entry',
 					"reference_name": advance.name,
 					"reference_row": None,
 					"remarks": advance.remarks,
-					"advance_amount": flt(advance.paid_amount),
-					"allocated_amount": advance.paid_amount,
+					"advance_amount": flt(paid_amount),
+					"allocated_amount": paid_amount,
 					"ref_exchange_rate": flt(advance.source_exchange_rate),  # exchange_rate of advance entry
 				}				
 				target.append("advances", advance_row)
