@@ -77,12 +77,17 @@ def unlink_client_request_from_payment_entry(self,method):
 	final_total=frappe.db.get_value('Client Request CT', self.client_request_ct, 'final_total')
 	print('final_total',final_total)
 	outstanding_amount=final_total-total_paid_amount
+	payment_entry=self.name
+	client_request_ct=self.client_request_ct
 	frappe.db.set_value('Client Request CT', self.client_request_ct, 'total_paid', total_paid_amount)
 	frappe.db.set_value('Client Request CT', self.client_request_ct, 'outstanding_amount', outstanding_amount)
 	frappe.msgprint("Client Request {0}  is updated with Total Paid Amount {1} and Outstanding Amount {2}".format(self.client_request_ct,total_paid_amount,outstanding_amount),
 							title="Client Request is updated",
 							indicator="green",
 							alert=True)	
-	self.client_request_ct=None	
+	frappe.db.set_value('Payment Entry', payment_entry , 'client_request_ct', '')
+	frappe.db.commit()
+	frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
+						.format(payment_entry, client_request_ct))
 
 
