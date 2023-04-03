@@ -551,7 +551,8 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		# 	target.set_advances()	
 
 	def set_missing_values(source, target):
-		taxes_and_charges=frappe.db.get_all('Sales Taxes and Charges Template',filters={'is_default': 1})
+		taxes_and_charges=frappe.db.get_all('Sales Taxes and Charges Template',filters={'is_default': 1,'company':source.company,'disabled':0})
+		print('taxes_and_charges1',taxes_and_charges)
 		target.taxes_and_charges=taxes_and_charges[0].get('name') if len(taxes_and_charges)>0 else None
 		print('target.taxes_and_charges',target.taxes_and_charges)
 		# if target.taxes_and_charges:
