@@ -45,6 +45,9 @@ frappe.ui.form.on('Client Request CT', {
 
 	},
 	onload: function (frm) {
+		if (frm.doc.docstatus==1) {
+			frm.fields_dict['tray_items'].grid.update_docfield_property('qty','read_only',1);		
+		}
 		if (!frm.doc.delivery_date) {
 			frm.set_value('delivery_date', frappe.datetime.get_today())
 		}
@@ -56,7 +59,17 @@ frappe.ui.form.on('Client Request CT', {
 	delivery_date: function (frm) {
 		if (frm.doc.delivery_date) {
 			frm.trigger('update_available_tray_list');
+	
+		if (frm.doc.tray_items && frm.doc.tray_items.length > 0) {
+			for (let i = 0; i < frm.doc.tray_items.length; i++) {
+				var row = frm.doc.tray_items[i];
+				if (frm.doc.delivery_date && row.item_code) {
+					refresh_tray_calculation(frm,row)
+				}
+			}			
+		} else {
 			frm.set_value('tray_items', [])
+		}	
 		}
 	},
 	update_available_tray_list: function (frm) {
@@ -452,9 +465,39 @@ frappe.ui.form.on('Client Request CT', {
 		console.log(selected_rows);
 	},
 	refresh: function (frm) {
+		if (frm.doc.docstatus==1) {
+			frm.fields_dict['tray_items'].grid.update_docfield_property('qty','read_only',1);		
+		}		
 		if (frm.is_new() == undefined && frm.doc.tray_items && frm.doc.tray_items.length > 0) {
-			frm.add_custom_button(__('Reserve Tray'), () => frm.trigger('reserve_tray'));
-			frm.add_custom_button(__('Cancel Tray'), () => frm.trigger('cancel_tray'));
+			let stock_entry_is_done=false
+			for (let i = 0; i < frm.doc.tray_items.length; i++) {
+				if (frm.doc.tray_items[i].reserve_tray == undefined) {
+
+				}else if(frm.doc.tray_items[i].reserve_tray != undefined){
+					stock_entry_is_done=true
+					break
+				}
+			}
+			if (stock_entry_is_done==true) {
+				frm.add_custom_button(__('Cancel Tray'), () => frm.trigger('cancel_tray')).addClass("btn-warning").css({'color':'red'});
+			}else{
+				frm.remove_custom_button('Cancel Tray');
+			}
+
+			let stock_entry_is_missing=false
+			for (let i = 0; i < frm.doc.tray_items.length; i++) {
+				if (frm.doc.tray_items[i].reserve_tray == undefined) {
+						stock_entry_is_missing=true
+						break
+				}else if(frm.doc.tray_items[i].reserve_tray != undefined){
+					
+				}
+			}			
+			if (stock_entry_is_missing==true) {
+				frm.add_custom_button(__('Reserve Tray'), () => frm.trigger('reserve_tray')).addClass("btn-warning").css({'color':'green'});;
+			}else{
+				frm.remove_custom_button('Reserve Tray');
+			}
 		}
 		if (frm.is_new() == undefined && frm.doc.outstanding_amount>0) {
 			frm.add_custom_button(__('Payment'), () => frm.trigger('make_payment_entry_dialog'));
@@ -493,7 +536,7 @@ frappe.ui.form.on('Client Request CT', {
 						label: 'Paid Amount',
 						fieldname: 'paid_amount',
 						fieldtype: 'Currency',
-						default: frm.doc.outstanding_amount
+						read_only:1
 					},
 					{
 						label: 'Mode of Payment',
@@ -910,4 +953,24 @@ function remove_empty_child_table_row_from_items(frm) {
 		}
 	}
 
+}
+
+async function refresh_tray_calculation(frm,row) {
+	await frappe.call({
+		doc: frm.doc,
+		method: "get_tray_qty_details",
+		args: {
+			"item_code": row.item_code,
+			"qty": row.qty,
+			// "delivery_rate_from_user": frm.doc.delivery_rate
+
+		},
+		callback: function (r) {
+			console.log(r)
+			let tray_row = locals[row.doctype][row.docname];
+			$.extend(tray_row, r.message);
+			refresh_field("tray_items");
+		},
+		freeze: true
+	});		
 }
