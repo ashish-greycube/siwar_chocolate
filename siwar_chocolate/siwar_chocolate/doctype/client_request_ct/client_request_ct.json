@@ -72,6 +72,7 @@
   "section_break_15",
   "grand_total",
   "crt_net_total",
+  "crt_tax_amount",
   "crt_discount_percentage",
   "crt_discount_amount",
   "crt_amount_after_discount",
@@ -704,6 +705,13 @@
    "fieldname": "district",
    "fieldtype": "Heading",
    "label": "District"
+  },
+  {
+   "fieldname": "crt_tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount",
+   "options": "currency",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
@@ -721,7 +729,7 @@
    "link_fieldname": "client_request_material_issue"
   }
  ],
- "modified": "2023-03-27 14:35:32.176798",
+ "modified": "2023-05-16 09:51:24.530554",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",
