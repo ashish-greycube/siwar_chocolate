@@ -642,7 +642,22 @@ def make_stock_entry_for_return_qty(source_name, target_doc=None):
 		target.qty = flt(obj.qty) or 0
 		target.basic_rate = obj.rate
 		target.uom=frappe.db.get_value('Item', obj.item_code, 'stock_uom')
-
+		# puja-greycube : fixed to allow return qty
+		conversion_factor = frappe.get_value(
+				"UOM Conversion Detail",
+				filters={
+					"parenttype": "Item",
+					"parentfield": "uoms",
+					"parent": obj.item_code,
+					"uom": frappe.db.get_value('Item', obj.item_code, 'stock_uom'),
+				},
+				fieldname="conversion_factor",
+			)
+		if conversion_factor:
+			target.conversion_factor = flt(conversion_factor)
+		else:
+			target.conversion_factor = 1
+		# 
 	def set_missing_values(source, target):
 		target.naming_series='STE-'
 		target.stock_entry_type='Material Receipt'		
