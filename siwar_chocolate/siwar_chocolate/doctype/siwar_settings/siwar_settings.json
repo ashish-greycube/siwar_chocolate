@@ -27,7 +27,7 @@
    "description": "No. of days before delivery date, tray is considered non-available",
    "fieldname": "booked_days_before",
    "fieldtype": "Int",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Booked Days Before",
    "read_only": 1
   },
@@ -36,7 +36,7 @@
    "description": "No. of days after delivery date, tray is considered non-available",
    "fieldname": "booked_days_after",
    "fieldtype": "Int",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Booked Days After",
    "read_only": 1
   },
@@ -68,9 +68,10 @@
   },
   {
    "default": "3",
-   "description": "No. of days before delivery date, for which all other trays are considered available",
+   "description": "Trays Assumed to be Returned, Days After Delivery Date. \n(Client Request CT) No. of days before current delivery date, for which all other trays are considered available.\ni.e. Maximum days by which client gets back to you with the tray you have given them\n",
    "fieldname": "reserved_booked_trays_for_days",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Reserved Booked Trays For (Days)",
    "reqd": 1
   },
@@ -92,7 +93,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-03-25 06:57:20.719211",
+ "modified": "2023-05-16 09:15:08.821799",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Settings",
