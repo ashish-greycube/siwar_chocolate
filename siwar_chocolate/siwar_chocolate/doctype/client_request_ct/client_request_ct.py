@@ -223,6 +223,7 @@ class ClientRequestCT(Document):
 				se=frappe.get_doc('Stock Entry', tray.reserve_tray)
 				se.cancel()
 				frappe.db.commit()
+				#  to do : may be instead of delete, deleted_reserved_tray (data)=tray.reserve_tray
 				frappe.delete_doc('Stock Entry', tray.reserve_tray)
 				frappe.msgprint("Stock Entry {0} for row no {1} is deleted".format(tray.reserve_tray,tray.idx),
 								title="Material Transfer is cancelled",
@@ -310,6 +311,7 @@ class ClientRequestCT(Document):
 		if len(default_tray_booking_warehouse_bin_list)>0:
 			already_booked_qty=default_tray_booking_warehouse_bin_list[0]['actual_qty']
 
+		# tray which are not manually cancelled, to be counted ..so logic is Trays.reserve_tray is NOT NULL
 		booked_tray_which_will_be_available=0
 		booked_from_date=add_days(delivery_date,-cint(reserved_booked_trays_for_days))
 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
