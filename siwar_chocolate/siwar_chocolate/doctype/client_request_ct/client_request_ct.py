@@ -144,9 +144,9 @@ class ClientRequestCT(Document):
 			grand_total= grand_total + client_item.get('amount')
 		self.grand_total=grand_total	
 		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 0
-		self.crt_tax_amount=flt((100+net_total_less_percentage)/100)
 		# self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
 		self.crt_net_total=self.grand_total/((100+net_total_less_percentage)/100)
+		self.crt_tax_amount=self.grand_total-self.crt_net_total
 		print(net_total_less_percentage,self.crt_net_total)
 		self.crt_amount_after_discount=self.crt_net_total
 		if self.crt_discount_percentage and self.crt_discount_percentage >0:

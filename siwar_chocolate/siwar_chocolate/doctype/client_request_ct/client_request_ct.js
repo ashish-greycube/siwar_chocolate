@@ -46,7 +46,7 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	onload: function (frm) {
 		if (frm.doc.docstatus==1) {
-			frm.fields_dict['tray_items'].grid.update_docfield_property('qty','read_only',1);		
+			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
 		}
 		if (!frm.doc.delivery_date) {
 			frm.set_value('delivery_date', frappe.datetime.get_today())
@@ -466,7 +466,7 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	refresh: function (frm) {
 		if (frm.doc.docstatus==1) {
-			frm.fields_dict['tray_items'].grid.update_docfield_property('qty','read_only',1);		
+			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
 		}		
 		if (frm.is_new() == undefined && frm.doc.tray_items && frm.doc.tray_items.length > 0) {
 			let stock_entry_is_done=false
@@ -536,7 +536,7 @@ frappe.ui.form.on('Client Request CT', {
 						label: 'Paid Amount',
 						fieldname: 'paid_amount',
 						fieldtype: 'Currency',
-						read_only:1
+						reqd:1
 					},
 					{
 						label: 'Mode of Payment',
