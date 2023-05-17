@@ -1,0 +1,48 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2023-05-11 14:09:22.730555",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Client Request Header",
+ "modified": "2023-05-11 14:09:22.730555",
+ "modified_by": "Administrator",
+ "module": "Siwar Chocolate",
+ "name": "siwar report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Client Request CT",
+ "report_name": "siwar report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Sales Master Manager"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Sales Master Manager"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "\u0644\u0644\u0625\u0637\u0644\u0627\u0639 \u0641\u0642\u0637"
+  }
+ ]
+}
