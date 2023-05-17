@@ -51,8 +51,9 @@ frappe.query_reports["Siwar Tray Status"] = {
 				let to_be_available_cr_list_all=String(data.to_be_available_cr_list).split(',');
 				let links=[]
 				for (let index = 0; index < to_be_available_cr_list_all.length; index++) {
-					let cr_name=String(to_be_available_cr_list_all[index]).split('@');
-					links.push(`<a title="${cr_name[1]}" href="/app/client-request-ct/${to_be_available_cr_list_all[0]}" >${to_be_available_cr_list_all[0]}</a>`)
+					let cr_name=String(to_be_available_cr_list_all[index]).split(',');
+					cr_name=String(cr_name).trim()
+					links.push(`<a title="${cr_name}" href="/app/client-request-ct/${cr_name}" >${cr_name}</a>`)
 				}
 				let link_value = links.join(",")
 				return link_value;				

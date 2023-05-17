@@ -158,14 +158,14 @@ def get_entries(filters):
                 AND Trays.item_code = %s
                 AND CR.delivery_date <= %s
                 AND Trays.reserve_tray IS NOT NULL
-        ''', (item, booked_from_date), as_dict=True)
+        ''', (entry.item_code, booked_from_date), as_dict=True,debug=False)
 		if booked_tray_list:
 			for tray in booked_tray_list:
 				booked_tray_which_will_be_available += tray['qty']
 				cr_list.append(tray['name'])
+		entry["to_be_available_cr_list"]=" , ".join(cr_list)
 		entry["booked_tray_which_will_be_available"] = booked_tray_which_will_be_available				
 		# entry["booked_tray_which_will_be_available"] = flt((booked_tray_which_will_be_available),precision_for_qty)
-		entry["to_be_available_cr_list"]=" , ".join(cr_list)
 		# entry["tray_not_cancelled"]=already_booked_qty-booked_tray_which_will_be_available
 		# entry["tray_not_cancelled"]=flt((already_booked_qty-booked_tray_which_will_be_available),precision_for_qty)
 
