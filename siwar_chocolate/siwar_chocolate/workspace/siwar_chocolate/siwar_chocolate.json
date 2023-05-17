@@ -40,9 +40,26 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Tray Status",
+   "link_to": "Siwar Tray Status",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2023-03-01 09:31:00.859938",
+ "modified": "2023-05-17 10:09:42.249399",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Siwar Chocolate",
