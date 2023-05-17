@@ -40,10 +40,10 @@ def get_columns(filters):
 			"width": 100,
 		},
 		{
-			"label": _("Delivery/Pickup Date"), 
+			"label": _("Delivery/Pickup Dt"), 
    			"fieldname": "delivery_date", 
 			"fieldtype": "Date", 
-			"width": 130
+			"width": 160
 		},
 		{
 			"label": _("Tray Code"),
@@ -77,19 +77,13 @@ def get_columns(filters):
 			"width": 100,
 		},		
 		{
-			"label": _("To Be Available"),
+			"label": _("Expected Return Tray"),
 			"fieldname": "booked_tray_which_will_be_available",
 			"fieldtype": "Int",
-			"width": 140,
+			"width": 160,
 		},
 		{
-			"label": _("Booked-To Be Av.."),
-			"fieldname": "tray_not_cancelled",
-			"fieldtype": "Int",
-			"width": 140,
-		},	
-		{
-			"label": _("ToBe Avail CR List"),
+			"label": _("Expected Return CR List"),
 			"fieldname": "to_be_available_cr_list",
 			"fieldtype": "Small Text",
 			"width": 250,
@@ -172,7 +166,7 @@ def get_entries(filters):
 		entry["booked_tray_which_will_be_available"] = booked_tray_which_will_be_available				
 		# entry["booked_tray_which_will_be_available"] = flt((booked_tray_which_will_be_available),precision_for_qty)
 		entry["to_be_available_cr_list"]=" , ".join(cr_list)
-		entry["tray_not_cancelled"]=already_booked_qty-booked_tray_which_will_be_available
+		# entry["tray_not_cancelled"]=already_booked_qty-booked_tray_which_will_be_available
 		# entry["tray_not_cancelled"]=flt((already_booked_qty-booked_tray_which_will_be_available),precision_for_qty)
 
 	return entries

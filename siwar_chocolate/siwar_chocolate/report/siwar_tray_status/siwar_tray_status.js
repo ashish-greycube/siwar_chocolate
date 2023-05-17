@@ -25,7 +25,7 @@ frappe.query_reports["Siwar Tray Status"] = {
 		},
 		{
 			fieldname:"client_request_date",
-			label: "From Date To Date",
+			label: "From Date To Date(Delivery Dt)",
 			fieldtype: "DateRange",
 			// depends_on: "eval: !doc.delivery_date",
 			// default: [frappe.datetime.add_months(frappe.datetime.get_today(),-1), frappe.datetime.get_today()]
