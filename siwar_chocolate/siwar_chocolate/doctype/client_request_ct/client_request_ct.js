@@ -447,6 +447,7 @@ frappe.ui.form.on('Client Request CT', {
 							fieldname:'item_code',
 							label: __('Item'),
 							in_list_view:1,
+							read_only:1
 
 						},
 						{
@@ -454,18 +455,20 @@ frappe.ui.form.on('Client Request CT', {
 							fieldname:'item_name',
 							label: __('Name'),
 							in_list_view:1,
-
+							read_only:1
 						},
 						{
 							fieldtype:'Int',
 							fieldname:'already_booked_qty',
 							label: __('Already Booked Qty'),
+							read_only:1,
 							in_list_view:1
 						},		
 						{
 							fieldtype:'Data',
 							fieldname:'reserve_tray',
 							label: __('Reserve Tray'),
+							read_only:1,
 							in_list_view:1
 						},											
 					],
@@ -584,7 +587,7 @@ frappe.ui.form.on('Client Request CT', {
 					
 				}
 			}			
-			if (stock_entry_is_missing==true) {
+			if (stock_entry_is_missing==true && frm.doc.docstatus==0) {
 				frm.add_custom_button(__('Reserve Tray'), () => frm.trigger('reserve_tray')).addClass("btn-warning").css({'color':'green'});;
 			}else{
 				frm.remove_custom_button('Reserve Tray');

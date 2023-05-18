@@ -51,7 +51,7 @@ def execute(filters=None):
 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
 							on Trays.parent=CR.name
 							where 
-							CR.docstatus=1 
+							CR.docstatus in (0,1) 
 							and Trays.item_code=%s
 							and CR.delivery_date between %s and %s
 				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)

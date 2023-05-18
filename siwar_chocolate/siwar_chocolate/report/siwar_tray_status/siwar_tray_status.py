@@ -154,7 +154,7 @@ def get_entries(filters):
             FROM `tabClient Request CT` CR
             INNER JOIN `tabClient Request CT Tray Item` Trays ON Trays.parent = CR.name
             WHERE 
-                CR.docstatus = 1
+                CR.docstatus in (0,1)
                 AND Trays.item_code = %s
                 AND CR.delivery_date <= %s
                 AND Trays.reserve_tray IS NOT NULL

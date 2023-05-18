@@ -90,6 +90,14 @@ class ClientRequestCT(Document):
 
 	# 	return stock_entry
 
+	def client_request_item_to_have_unique_items(self):
+		unique_items = set()
+		for item in self.items:
+			if item.item_code in unique_items:
+				frappe.throw(_("Client Request Item {0} already exists in the child table.").format(item.item_code))
+			else:
+				unique_items.add(item.item_code)
+
 	def tray_item_to_have_unique_items(self):
 		unique_items = set()
 		for item in self.tray_items:
@@ -165,6 +173,7 @@ class ClientRequestCT(Document):
 
 	def validate(self):	
 		print('---')
+		self.client_request_item_to_have_unique_items()
 		self.tray_item_to_have_unique_items()
 		self.total_tray_item_deposit_and_rent_amount()
 		self.add_rent_item_to_client_request_item()
@@ -318,7 +327,7 @@ class ClientRequestCT(Document):
 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
 							on Trays.parent=CR.name
 							where 
-							CR.docstatus=1 
+							CR.docstatus in (0,1)
 							and Trays.item_code=%s
 							and CR.delivery_date <= %s 
 							and Trays.reserve_tray is not null
@@ -415,7 +424,7 @@ def create_material_transfer(from_warehouse, to_warehouse, item_code, qty):
 # 		booked_tray_list=frappe.db.sql('''select Trays.qty from `tabClient Request CT` CR inner join  `tabClient Request CT Tray Item` Trays
 # 							on Trays.parent=CR.name
 # 							where 
-# 							CR.docstatus=1 
+# 							CR.docstatus in (0,1)
 # 							and Trays.item_code=%s
 # 							and CR.delivery_date between %s and %s
 # 				''', (item.item_code,booked_from_date, booked_to_date), as_dict=True)
