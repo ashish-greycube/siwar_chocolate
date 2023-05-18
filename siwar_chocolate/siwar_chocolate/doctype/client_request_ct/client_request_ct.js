@@ -45,15 +45,13 @@ frappe.ui.form.on('Client Request CT', {
 
 	},
 	onload: function (frm) {
-		if (frm.doc.docstatus==1) {
-			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
-		}
 		if (!frm.doc.delivery_date) {
 			frm.set_value('delivery_date', frappe.datetime.get_today())
 		}
 		if (frm.doc.delivery_date) {
 			frm.trigger('update_available_tray_list');
 		}
+		frm.trigger('client_request_on_refresh_load')
 	},
 
 	delivery_date: function (frm) {
@@ -421,27 +419,120 @@ frappe.ui.form.on('Client Request CT', {
 		}
 	},
 	cancel_tray: function (frm) {
-		// get the selected child table rows
-		var selected_rows = frm.fields_dict['tray_items'].grid.get_selected_children();
-		if (selected_rows.length == 0) {
-			frappe.show_alert({
-				message: __('Please select tray items for cancellation..'),
-				indicator: 'red'
-			}, 5);
-		} else {
-			frm.call('cancel_tray', {
-					selected_rows: selected_rows
-				})
-				.then(r => {
-					frm.reload_doc()
-					console.log(r)
-				})
+		let cancel_tray_items =$.map(frm.doc.tray_items, function(d) { 
+			if (d.reserve_tray) {
+				return {
+					'idx':d.idx,
+					'item_code':d.item_code,
+					'item_name':d.item_name,
+					'already_booked_qty':d.already_booked_qty,
+					'item_hexcode':d.name,
+					'reserve_tray':d.reserve_tray
+				}; 			
+			}
+		});
+		if (cancel_tray_items.length>=1) {
+			let title=__('Cancel Tray');
+			let fields= [
+				{fieldtype:'Section Break', label: __('Tray Items')},
+				{
+					fieldname: 'cancel_tray_items_table',
+					fieldtype: 'Table',
+					label: __(''),
+					in_place_edit: false,
+					editable: false,
+					fields: [
+						{
+							fieldtype:'Data',
+							fieldname:'item_code',
+							label: __('Item'),
+							in_list_view:1,
 
-		}
+						},
+						{
+							fieldtype:'Data',
+							fieldname:'item_name',
+							label: __('Name'),
+							in_list_view:1,
 
-		// log the selected rows
-		console.log(selected_rows);
+						},
+						{
+							fieldtype:'Int',
+							fieldname:'already_booked_qty',
+							label: __('Already Booked Qty'),
+							in_list_view:1
+						},		
+						{
+							fieldtype:'Data',
+							fieldname:'reserve_tray',
+							label: __('Reserve Tray'),
+							in_list_view:1
+						},											
+					],
+					data: cancel_tray_items,
+					get_data: () => {
+						return cancel_tray_items
+					},
+
+				},
+			]
+			let d=new frappe.ui.Dialog({
+				title:title,
+				fields: fields,
+				primary_action_label: 'Cancel Tray',
+				primary_action: function() {
+					var data = {cancel_tray_items_table: d.fields_dict.cancel_tray_items_table.grid.get_selected_children()};
+					let selected_cancel_tray_items=data.cancel_tray_items_table
+					if (selected_cancel_tray_items.length>0) {
+						frappe.call({
+							method:"siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.cancel_tray_via_dialog",
+							args: {
+								'selected_cancel_tray_items':selected_cancel_tray_items,
+							},
+							callback: function(r) {
+								console.log(r,r)
+								d.hide();
+								if (r.message) {
+									frappe.show_alert({
+										message: __('tray item is cancelled..'),
+										indicator: 'green'
+									}, 5);									
+			
+								}
+							}
+						});				
+					}
+					
+				}				
+		})
+		d.show();
+		d.get_close_btn().on('click', () => {
+			d.hide();
+		});		
+	}		
 	},
+	// cancel_tray: function (frm) {
+	// 	// get the selected child table rows
+	// 	var selected_rows = frm.fields_dict['tray_items'].grid.get_selected_children();
+	// 	if (selected_rows.length == 0) {
+	// 		frappe.show_alert({
+	// 			message: __('Please select tray items for cancellation..'),
+	// 			indicator: 'red'
+	// 		}, 5);
+	// 	} else {
+	// 		frm.call('cancel_tray', {
+	// 				selected_rows: selected_rows
+	// 			})
+	// 			.then(r => {
+	// 				frm.reload_doc()
+	// 				console.log(r)
+	// 			})
+
+	// 	}
+
+	// 	// log the selected rows
+	// 	console.log(selected_rows);
+	// },
 	reserve_tray: function (frm) {
 		// get the selected child table rows
 		var selected_rows = frm.fields_dict['tray_items'].grid.data
@@ -464,7 +555,7 @@ frappe.ui.form.on('Client Request CT', {
 		// log the selected rows
 		console.log(selected_rows);
 	},
-	refresh: function (frm) {
+	client_request_on_refresh_load: function(frm){
 		if (frm.doc.docstatus==1) {
 			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
 		}		
@@ -501,7 +592,10 @@ frappe.ui.form.on('Client Request CT', {
 		}
 		if (frm.is_new() == undefined && frm.doc.outstanding_amount>0) {
 			frm.add_custom_button(__('Payment'), () => frm.trigger('make_payment_entry_dialog'));
-		}		
+		}	
+	},
+	refresh: function (frm) {
+		frm.trigger('client_request_on_refresh_load')
 	},
 	make_payment_entry_dialog: function (frm) {
 

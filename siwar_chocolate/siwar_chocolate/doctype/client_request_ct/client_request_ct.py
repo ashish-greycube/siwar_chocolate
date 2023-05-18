@@ -818,3 +818,23 @@ def find_payment_etnry_linked_with_client_request(client_request):
 		if pe['paid_amount']:
 			total_paid_amount=total_paid_amount+pe['paid_amount']
 	return total_paid_amount
+
+@frappe.whitelist()
+def cancel_tray_via_dialog(selected_cancel_tray_items):
+	if isinstance(selected_cancel_tray_items, string_types):
+		import json
+		_selected_cancel_tray_items =json.loads(selected_cancel_tray_items)
+	for tray in _selected_cancel_tray_items:	
+		tray=frappe._dict(tray)
+		if  tray.reserve_tray != None:
+			# cancel SE 
+			se=frappe.get_doc('Stock Entry', tray.reserve_tray)
+			se.cancel()
+			frappe.db.commit()
+			#  to do : may be instead of delete, deleted_reserved_tray (data)=tray.reserve_tray
+			# frappe.delete_doc('Stock Entry', tray.reserve_tray)
+			frappe.msgprint("Stock Entry {0} for row no {1} is deleted".format(tray.reserve_tray,tray.idx),
+							title="Material Transfer is cancelled",
+							indicator="yellow",
+							alert=True)
+			frappe.db.set_value('Client Request CT Tray Item', tray.item_hexcode, 'reserve_tray', None)
