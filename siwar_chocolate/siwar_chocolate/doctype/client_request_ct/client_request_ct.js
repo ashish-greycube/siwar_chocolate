@@ -1059,14 +1059,13 @@ async function refresh_tray_calculation(frm,row) {
 		args: {
 			"item_code": row.item_code,
 			"qty": row.qty,
-			// "delivery_rate_from_user": frm.doc.delivery_rate
 
 		},
 		callback: function (r) {
 			console.log(r)
-			let tray_row = locals[row.doctype][row.docname];
+			let tray_row = locals[row.doctype][row.name];
 			$.extend(tray_row, r.message);
-			refresh_field("tray_items");
+			// refresh_field("tray_items");
 		},
 		freeze: true
 	});		
