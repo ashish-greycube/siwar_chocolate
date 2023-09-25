@@ -43,7 +43,43 @@ frappe.ui.form.on('Client Request CT', {
 			}
 		}
 
+		var checkbox_fields = ['showroom_crt', 'occasion_section_crt', 'customer_service_crt', 'in_call_crt'];
+    	var atLeastOneChecked = false;
+
+    	for (var i = 0; i < checkbox_fields.length; i++) {
+			if (frm.doc[checkbox_fields[i]]) {
+				atLeastOneChecked = true;
+				break;
+			}
+    	}
+
+		if (!atLeastOneChecked) {
+			frm.set_df_property('client_request_type_section', 'reqd', 1);
+			frappe.msgprint(__('Please tick at least one checkbox in the Client Request Type.'));
+		} 
+		else {
+			frm.set_df_property('client_request_type_section', 'reqd', 0);
+		}
+
+		if (!frm.doc.delivery && !frm.doc.pickup) {
+			frm.set_df_property('receiving_status', 'reqd', 1);
+			return;
+		} else {
+			frm.set_df_property('receiving_status', 'reqd', 0);
+		}
+
+
+		if (!frm.doc.supervision && !frm.doc.no_supervision) {
+			frm.set_df_property('supervision_status', 'reqd', 1);
+			return;
+		} else {
+			frm.set_df_property('supervision_status', 'reqd', 0);
+		}
+
+		
+
 	},
+	
 	onload: function (frm) {
 		if (!frm.doc.delivery_date) {
 			frm.set_value('delivery_date', frappe.datetime.get_today())
@@ -52,8 +88,10 @@ frappe.ui.form.on('Client Request CT', {
 			frm.trigger('update_available_tray_list');
 		}
 		frm.trigger('client_request_on_refresh_load')
-	},
 
+		
+	},
+	
 	delivery_date: function (frm) {
 		if (frm.doc.delivery_date) {
 			frm.trigger('update_available_tray_list');
@@ -599,7 +637,82 @@ frappe.ui.form.on('Client Request CT', {
 	},
 	refresh: function (frm) {
 		frm.trigger('client_request_on_refresh_load')
+
+		frm.add_custom_button("Link existing PE", function() {
+            if (!frm.doc.customer) {
+                frappe.msgprint("Select a Customer first before getting related payment entries");
+                return;
+            }
+            new frappe.ui.form.MultiSelectDialog({
+                doctype: "Payment Entry",
+                target: frm.doc,
+                setters: {
+                    party_type: "Customer", 
+                    party: frm.doc.customer,
+                    // docstatus: 0
+					
+                },
+                get_query() {
+                    return {
+						
+                        filters: {
+                            // party_type: "Customer",
+                            party: frm.doc.customer,
+							// client_request_ct: ["", "is", null],
+                            // docstatus: ["!=", 2],
+							client_request_ct: ""
+                        }
+                    };
+                },
+				primary_action_label: "Link & Create Payment Entry",
+				
+				
+                action(selections) {
+					
+                    if (selections && selections.length > 0) {
+                        frappe.confirm("Create Payment Entry for selected Payment?", () => {
+                            
+
+
+							frappe.call({
+								method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.link_and_submit_payment_entries",
+                                args: {
+									
+                                    "selections": selections,
+									"client_request_ct": frm.doc.name
+                                },
+                                callback: function(response) {
+                                    
+                                }
+                            });
+
+
+
+
+                        });
+                	}
+            	}
+			});
+        
+		});
+    
+
+
+
+
 	},
+	
+	
+	
+	
+	
+	
+	
+	after_save: function(frm) {
+        if (frm.doc.status_stop == 1 ) {
+            frm.reload_doc();
+        }
+    },
 	make_payment_entry_dialog: function (frm) {
 
 		frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_mode_of_payment_for_which_ref_is_required',{
@@ -672,7 +785,7 @@ frappe.ui.form.on('Client Request CT', {
 				primary_action_label: 'Create Payment Entry',
 				primary_action: function(values) {
 					let user_paid_amount=values.paid_amount
-					if (user_paid_amount==0 || user_paid_amount > frm.doc.outstanding_amount) {
+					if (user_paid_amount==0 || user_paid_amount > Math.ceil(frm.doc.outstanding_amount)) {
 						var msg = __("Incorrect Paid Amount: {0}",[user_paid_amount])
 					frappe.throw(msg);						
 					}
@@ -766,7 +879,10 @@ frappe.ui.form.on('Client Request CT Tray Item', {
 		}
 	},
 	rent_rate: function (frm, cdt, cdn) {caclculate_rent_amount(frm, cdt, cdn)},
-	deposit_rate: function (frm, cdt, cdn) {caclculate_deposit_amount(frm, cdt, cdn)},
+	deposit_rate: function (frm, cdt, cdn) 
+	{
+		caclculate_deposit_amount(frm, cdt, cdn)
+	},
 	qty: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		if (row.qty && row.available_qty && (row.qty > row.available_qty)) {
@@ -1052,7 +1168,13 @@ function remove_empty_child_table_row_from_items(frm) {
 
 }
 
+
+
+
+
+
 async function refresh_tray_calculation(frm,row) {
+	
 	await frappe.call({
 		doc: frm.doc,
 		method: "get_tray_qty_details",

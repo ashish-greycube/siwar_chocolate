@@ -12,9 +12,11 @@ frappe.listview_settings['Client Request CT'] = {
 			return [__("Ready To Deliver"), "green", "status,=,Ready To Deliver"];
 		} else if (doc.status === "Delivered") {
 			return [__("Delivered"), "purple", "status,=,Delivered"];
-		} else if (doc.status === "Cancelled") {
+		}
+		else if (doc.status === "Cancelled") {
 			return [__("Cancelled"), "red", "status,=,Cancelled"];
-		} 
+		}
+		
 	},
 	onload: function(listview) {
 	}

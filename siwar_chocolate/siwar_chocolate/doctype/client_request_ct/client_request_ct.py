@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _, scrub,msgprint
 from frappe.model.document import Document
 from erpnext.controllers.selling_controller import SellingController
@@ -171,49 +172,187 @@ class ClientRequestCT(Document):
 		for packing_item in self.packing_items:
 			packing_item.amount=packing_item.rate*packing_item.qty
 
-	def validate(self):	
+	def validate(self):
+		# if self.stop:
+		# 	# self.db_set("stop",1)
+		# 	self_doc = frappe.get_doc(self.doctype, self.name)
+		# 	print('SELF DOC NAME', self.name)
+		# 	if self_doc.docstatus == 0:  # Check if document is in draft state
+		# 		frappe.msgprint(str(self_doc.stop))
+		# 		self_doc.save()
+		# 		self_doc.submit()
+		# 		print('DOCUMENT IS SUBMITTED')
+				
+		# 		self_doc = frappe.get_doc(self.doctype, self.name)
+		# 		self_doc.cancel()
+		# 		print('DOCUMENT IS CANCELLED')
+		# 	return
+		# else:
 		print('---')
 		self.client_request_item_to_have_unique_items()
 		self.tray_item_to_have_unique_items()
 		self.total_tray_item_deposit_and_rent_amount()
 		self.add_rent_item_to_client_request_item()
 		self.calculate_totals()
-		
+
+	def on_update(self):
+		if self.status_stop:
+			# frappe.msgprint("stop status")
+			self_doc = frappe.get_doc(self.doctype, self.name)
+			if self_doc.docstatus == 0:  # Check if document is in draft state
+				# frappe.msgprint(str(self_doc.stop))
+				self_doc.submit()
+				self_doc.cancel()
+				self_doc.db_set('status','Stopped')
+
 
 	def on_submit(self):
-		if self.is_tray_required==1:
-			for tray in self.tray_items:
-				if tray.qty>tray.available_qty:
-					frappe.throw(_("For Row : {0}, Tray : {1} entered qty is {2}. It should be less than available qty {3}.").format(tray.idx,tray.item_code,tray.qty,tray.available_qty),title=_('Error'))
-				# tray_list=get_available_tray_list('Item','','name',0,20,{'delivery_date': self.delivery_date},tray.item_code,tray.qty)
-				# if len(tray_list)==0:
-				# 	frappe.throw(_("Tray {0} is occupied. Cannot submit.").format(tray.item_code),title=_('Error'))
+		if self.status_stop != 1:  # Skip this logic if 'stop' is ticked
+			if self.is_tray_required==1:
+				for tray in self.tray_items:
+					if tray.qty>tray.available_qty:
+						frappe.throw(_("For Row : {0}, Tray : {1} entered qty is {2}. It should be less than available qty {3}.").format(tray.idx,tray.item_code,tray.qty,tray.available_qty),title=_('Error'))
+				
 
-			# frappe.db.set(self, 'tray_status', 'Booked')
-			# stock_entry=self.create_stock_entry(tray_return=False)
-			# frappe.db.set(self, 'tray_issue_stock_entry', stock_entry)
-
-		frappe.db.set(self, 'status', 'Submitted')
-		#  do material issue
-		material_issue=make_stock_entry(self.name)
-		frappe.msgprint("Material Issue {0} , is created based on client request and packing items.".format(material_issue.name),
+			frappe.db.set(self, 'status', 'Submitted')
+			#  do material issue
+			material_issue=make_stock_entry(self.name)
+			frappe.msgprint("Material Issue {0} , is created based on client request and packing items.".format(material_issue.name),
 								title="Stock Entry is created",
 								indicator="green",
-								alert=True)		
+								alert=True)	
+	
+	
+	
+	# def on_cancel(self):
+	# 	stock_entry_docstatus = frappe.db.get_value('Stock Entry', self.stock_entry, 'docstatus')
+	# 	sales_invoice_docstatus = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
+	# 	# Cannot cancel
+	# 	if stock_entry_docstatus == 1 and sales_invoice_docstatus == 1:
+	# 		frappe.throw(_("Cannot cancel client request as linked material issue {0} and ").format("<a href='desk#Form/Stock Entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry))
+	# 		+_(" linked sales invoice {0} are in submitted state.").format("<a href='desk#Form/Sales Invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
+	# 	elif stock_entry_docstatus == 1:
+	# 		frappe.throw(_("Cannot cancel client request as linked material issue {0} is in submitted state.").format("<a href='desk#Form/Stock Entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry)))
+	# 	elif sales_invoice_docstatus == 1:
+	# 		frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format("<a href='desk#Form/Sales Invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
+	# 	frappe.db.set(self, 'status', 'Cancelled')
+	# 	# frappe.db.set(self, 'tray_status', 'Available')
+
+
+
+
+
 
 	def on_cancel(self):
-		stock_entry_docstatus = frappe.db.get_value('Stock Entry', self.stock_entry, 'docstatus')
-		sales_invoice_docstatus = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
-		# Cannot cancel
-		if stock_entry_docstatus == 1 and sales_invoice_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked material issue {0} and ").format("<a href='desk#Form/Stock Entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry))
-			+_(" linked sales invoice {0} are in submitted state.").format("<a href='desk#Form/Sales Invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
-		elif stock_entry_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked material issue {0} is in submitted state.").format("<a href='desk#Form/Stock Entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry)))
-		elif sales_invoice_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format("<a href='desk#Form/Sales Invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
-		frappe.db.set(self, 'status', 'Cancelled')
-		# frappe.db.set(self, 'tray_status', 'Available')
+		if self.status_stop != 1:  # Skip this logic if 'stop' is ticked
+
+			self.unlink_stock_entry()
+			self.unlink_payment_entry()
+
+	def unlink_stock_entry(self):
+		stock_entry = frappe.get_doc("Stock Entry", {"client_request_material_issue": self.name})
+		
+		if stock_entry:
+			stock_entry.cancel()
+			frappe.msgprint(_("Associated Stock Entry {0} is canceled.".format(get_link_to_form('Stock Entry', stock_entry.name))))
+		else:
+			frappe.msgprint(_("No associated Stock Entry found for this Client Request."))
+
+	def unlink_payment_entry(self):
+		payment_entries = frappe.get_all("Payment Entry", filters={"client_request_ct": self.name}, fields=["name"])
+		
+		if payment_entries:
+			for entry in payment_entries:
+				pe_name = entry.name
+				print('PAYMENT ENTRY-----------', pe_name)
+
+            # Set the status to draft
+			frappe.db.set_value("Payment Entry", pe_name, "docstatus", 0)
+			print('------PAYMENT ENTRY STATUS-----------', frappe.db.get_value("Payment Entry", pe_name, "docstatus"))
+
+            # Remove the reference
+			frappe.db.set_value("Payment Entry", pe_name, "client_request_ct", None)
+			print('------PAYMENT ENTRY CR-----------', frappe.db.get_value("Payment Entry", pe_name, "client_request_ct"))
+			frappe.db.commit()
+			frappe.msgprint(_("Payment Entry {0} unlinked and set to draft.".format(get_link_to_form('Payment Entry', pe_name))))
+		else:
+			frappe.msgprint(_("No associated Payment Entry found for this Client Request."))
+	
+
+
+
+
+
+
+
+	# def validate(self):
+	# 	if self.stop == 1:
+	# 		self_doc = frappe.get_doc(self.doctype, self.name)
+	# 		if self_doc.docstatus == 0:  # Check if document is in draft state
+	# 			self_doc.submit()
+	# 			self_doc.cancel()
+	# 		frappe.db.set_value(self_doc.doctype, self_doc.name, 'status', 'Stopped')
+	# 		return
+	# 	else:
+	# 		self.client_request_item_to_have_unique_items()
+	# 		self.tray_item_to_have_unique_items()
+	# 		self.total_tray_item_deposit_and_rent_amount()
+	# 		self.add_rent_item_to_client_request_item()
+	# 		self.calculate_totals()
+	# 		self.process_actions()  # Include the specific actions
+
+	# def on_submit(self):
+	# 	self.process_actions(skip_on_stop=self.stop)
+
+	# def on_cancel(self):
+	# 	if not self.stop:
+	# 		self.process_actions()
+
+	# def process_actions(self, skip_on_stop=False):
+	# 	if skip_on_stop:
+	# 		return
+	# 	if self.is_tray_required == 1:
+	# 		for tray in self.tray_items:
+	# 			if tray.qty > tray.available_qty:
+	# 				frappe.throw(_("For Row : {0}, Tray : {1} entered qty is {2}. It should be less than available qty {3}.").format(tray.idx, tray.item_code, tray.qty, tray.available_qty), title=_('Error'))
+	# 			frappe.db.set(self, 'status', 'Submitted')
+	# 			material_issue = make_stock_entry(self.name)
+				
+	# 			if self.is_tray_required != 1:  # Skip stock entry creation if 'stop' or tray is not required
+	# 				material_issue = make_stock_entry(self.name)
+	# 				if material_issue:
+	# 					frappe.msgprint("Material Issue {0}, is created based on client request and packing items.".format(material_issue.name), title="Stock Entry is created", indicator="green", alert=True)
+            
+	# 	self.client_request_item_to_have_unique_items()
+	# 	self.tray_item_to_have_unique_items()
+	# 	self.total_tray_item_deposit_and_rent_amount()
+	# 	self.add_rent_item_to_client_request_item()
+	# 	self.calculate_totals()
+
+	# def unlink_stock_entry(self):
+	# 	stock_entry = frappe.get_doc("Stock Entry", {"client_request_material_issue": self.name})
+	# 	if stock_entry:
+	# 		stock_entry.cancel()
+	# 		frappe.msgprint(_("Associated Stock Entry {0} is canceled.".format(get_link_to_form('Stock Entry', stock_entry.name))))
+	# 	else:
+	# 		frappe.msgprint(_("No associated Stock Entry found for this Client Request."))
+
+	# def unlink_payment_entry(self):
+	# 	payment_entries = frappe.get_all("Payment Entry", filters={"client_request_ct": self.name}, fields=["name"])
+	# 	if payment_entries:
+	# 		for entry in payment_entries:
+	# 			pe_name = entry.name
+    #         # Set the status to draft
+	# 		frappe.db.set_value("Payment Entry", pe_name, "docstatus", 0)
+    #         # Remove the reference
+	# 		frappe.db.set_value("Payment Entry", pe_name, "client_request_ct", None)
+	# 		frappe.db.commit()
+	# 		frappe.msgprint(_("Payment Entry {0} unlinked and set to draft.".format(get_link_to_form('Payment Entry', pe_name))))
+	# 	else:
+	# 		frappe.msgprint(_("No associated Payment Entry found for this Client Request."))
+
+
+
 
 	@frappe.whitelist()
 	def cancel_tray(self, args=None):
@@ -342,7 +481,9 @@ class ClientRequestCT(Document):
 		# if delivery_rate_from_user >0:
 		# 	deposit_rate=delivery_rate_from_user
 		# else:
-		deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
+
+
+		# deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
 		
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
@@ -353,8 +494,8 @@ class ClientRequestCT(Document):
 			 'qty':qty , #should not be > Total Available Qty on Delivery Date
 			 'rent_rate':rent_rate,
 			 'rent_amount': flt(rent_rate*qty),
-			 'deposit_rate':deposit_rate,
-			 'deposit_amount':flt(deposit_rate*qty),
+			#  'deposit_rate':deposit_rate,
+			#  'deposit_amount':flt(deposit_rate*qty),
 			 'total_qty':flt(available_qty+already_booked_qty)
 		}
 
@@ -736,6 +877,60 @@ def get_mode_of_payment_for_which_ref_is_required(company):
 			mode_of_payment_for_which_ref_is_required.append(mop.name)
 	return mode_of_payment_for_which_ref_is_required
 
+
+
+
+
+
+
+
+# get related payment entries of customer where client_request_ct empty
+
+@frappe.whitelist()
+def get_payment_entries(self):
+		return frappe.get_all("Payment Entry", filters={
+            "party_type": "Customer",
+            "party": self.customer,
+            "docstatus": ["!=", 2]
+        }, fields=["name", "posting_date", "total_amount"])
+
+	
+@frappe.whitelist()
+def link_and_submit_payment_entries(selections, client_request_ct):
+    linked_entries = []
+    # print('CLIENT REQUEST CTTTT', client_request_ct)
+    # print('SELECTIONS', selections)
+    # print(type(selections))
+
+    if isinstance(selections, str):
+        selections = json.loads(selections)
+
+    for entry_name in selections:
+        payment_entry = frappe.get_doc("Payment Entry", entry_name)
+        # print('ENTRY NAME', entry_name)
+        payment_entry.party_type = "Customer"
+        payment_entry.client_request_ct = client_request_ct
+        payment_entry.save()
+        payment_entry.submit()
+
+        linked_entries.append(payment_entry.name)
+
+    return linked_entries
+
+
+
+
+
+
+
+
+
+
+
+
+
+# creates fresh payment entry from payment popup
+
 @frappe.whitelist()
 def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,reference_no=None,reference_date=None,party_amount=None, bank_account=None, bank_amount=None):
 	from erpnext.accounts.party import get_party_account
@@ -743,7 +938,7 @@ def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,refe
 	from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 	from erpnext.accounts.doctype.bank_account.bank_account import get_party_bank_account
 	doc = frappe.get_doc(dt, dn)
-	# siwari change
+	# siwar change
 	party_type = "Customer"
 	party_account = get_party_account(party_type, doc.get(party_type.lower()), doc.company)
 	payment_type = "Receive"
