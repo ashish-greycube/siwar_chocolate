@@ -43,6 +43,18 @@ frappe.ui.form.on('Client Request CT', {
 			}
 		}
 
+
+		if (!frm.doc.showroom_crt && !frm.doc.occasion_section_crt && !frm.doc.customer_service_crt && !frm.doc.in_call_crt && !frm.doc.test_and_free) {
+			frappe.throw({message:__("Please select at least one checkbox in Client Request Type"), title:__("Mandatory")})
+		}
+
+		if (!frm.doc.delivery && !frm.doc.pickup) {
+			frappe.throw({message:__("Please select at least one checkbox in Receiving Status"), title:__("Mandatory")})
+		}
+		if (!frm.doc.supervision && !frm.doc.no_supervision) {
+			frappe.throw({message:__("Please select at least one checkbox in Supervision Status"), title:__("Mandatory")})
+		}		
+
 	},
 	onload: function (frm) {
 		if (!frm.doc.delivery_date) {
@@ -559,6 +571,16 @@ frappe.ui.form.on('Client Request CT', {
 		console.log(selected_rows);
 	},
 	client_request_on_refresh_load: function(frm){
+		if (frm.doc.docstatus==0 && frm.is_new() == undefined && frm.doc.status=='Draft') {
+			frm.add_custom_button(__('Direct Cancel'), () => {
+				frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.direct_cancel_from_draft_state', {
+					client_request_name: frm.doc.name
+				}).then(r => {
+					console.log(r.message)
+					frm.reload_doc()
+				})				
+	
+		}).addClass("btn-warning").css({'color':'red'})}
 		if (frm.doc.docstatus==1) {
 			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
 		}		
@@ -1059,7 +1081,8 @@ async function refresh_tray_calculation(frm,row) {
 		args: {
 			"item_code": row.item_code,
 			"qty": row.qty,
-
+			"deposit_rate":row.deposit_rate,
+			"rent_rate":row.rent_rate
 		},
 		callback: function (r) {
 			console.log(r)

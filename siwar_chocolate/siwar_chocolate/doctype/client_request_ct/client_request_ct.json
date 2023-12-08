@@ -152,6 +152,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
+   "no_copy": 1,
    "options": "\nDraft\nSubmitted\nUnder Preparation\nReady To Deliver\nDelivered\nCancelled",
    "reqd": 1
   },
@@ -614,6 +615,7 @@
    "fieldname": "final_total",
    "fieldtype": "Currency",
    "label": "Final Total",
+   "no_copy": 1,
    "options": "currency",
    "read_only": 1
   },
@@ -621,6 +623,7 @@
    "fieldname": "total_paid",
    "fieldtype": "Currency",
    "label": "Total Paid",
+   "no_copy": 1,
    "options": "currency",
    "read_only": 1
   },
@@ -629,6 +632,7 @@
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "<b>Outstanding Amount</b>",
+   "no_copy": 1,
    "options": "currency",
    "read_only": 1
   },
@@ -729,7 +733,7 @@
    "link_fieldname": "client_request_material_issue"
   }
  ],
- "modified": "2023-05-16 13:08:40.441788",
+ "modified": "2023-12-07 16:56:57.015815",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

@@ -13,9 +13,10 @@ from erpnext.stock.utils import get_stock_balance
 from six import string_types
 from frappe.utils import add_days
 from frappe.utils import cint
+from frappe.model.utils import get_fetch_values
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_party_details
 from erpnext.controllers.accounts_controller import get_taxes_and_charges
-
+import math
 
 class ClientRequestCT(Document):
 	# def create_stock_entry(self,tray_return=False):
@@ -167,12 +168,12 @@ class ClientRequestCT(Document):
 		self.final_total=self.crt_amount_after_discount+((self.crt_amount_after_discount*net_total_less_percentage)/100)+self.total_deposit_in_grand
 		self.total_paid=find_payment_etnry_linked_with_client_request(self.name)
 		self.outstanding_amount=self.final_total-self.total_paid
-
+		# 23.50=24 and 23.51=24 and 23.49=23
+		self.outstanding_amount = math.floor(self.outstanding_amount)  if math.floor(self.outstanding_amount) + 0.5 > self.outstanding_amount else math.ceil(self.outstanding_amount)
 		for packing_item in self.packing_items:
 			packing_item.amount=packing_item.rate*packing_item.qty
 
 	def validate(self):	
-		print('---')
 		self.client_request_item_to_have_unique_items()
 		self.tray_item_to_have_unique_items()
 		self.total_tray_item_deposit_and_rent_amount()
@@ -337,13 +338,19 @@ class ClientRequestCT(Document):
 				booked_tray_which_will_be_available=tray['qty']+booked_tray_which_will_be_available
 		
 		qty=args.get("qty") or 1 
-		rent_rate= frappe.db.get_value('Item', item, 'rent_cf')
+		#  if user defined rate is there and it is > 0 use that
+		usr_rent_rate=args.get('rent_rate')
+		if usr_rent_rate and usr_rent_rate>0:
+			rent_rate=usr_rent_rate
+		else:
+			rent_rate= frappe.db.get_value('Item', item, 'rent_cf')
+		#  if user defined deposit rate is there and it is > 0 use that
+		usr_deposit_rate=args.get('deposit_rate')
+		if usr_deposit_rate and usr_deposit_rate>0:
+			deposit_rate=usr_deposit_rate
+		else:
+			deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')	
 
-		# if delivery_rate_from_user >0:
-		# 	deposit_rate=delivery_rate_from_user
-		# else:
-		deposit_rate=frappe.db.get_value('Item', item, 'deposit_cf')
-		
 		ret_item = {
 			 'item_name'	: item and args.get('item_name') or '',
 			 'available_qty':available_qty,
@@ -847,3 +854,20 @@ def cancel_tray_via_dialog(selected_cancel_tray_items):
 							indicator="yellow",
 							alert=True)
 			frappe.db.set_value('Client Request CT Tray Item', tray.item_hexcode, 'reserve_tray', None)
+
+@frappe.whitelist()
+def direct_cancel_from_draft_state(client_request_name)	:
+	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request_name]}, fields=['name', 'paid_amount'])
+	for pe in pe_list:
+		frappe.db.set_value('Payment Entry', pe.name , 'client_request_ct', '')
+		frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
+							.format(pe.name, client_request_name))
+	frappe.db.set_value('Client Request CT', client_request_name, 'docstatus', 2)
+	frappe.msgprint(_("Client Request  {0} is direct cancelled.").format(client_request_name))
+	doc=frappe.get_doc('Client Request CT', client_request_name)
+	doc.add_comment('Comment', text='System : This doc is directly cancelled from draft stage')
+	if len(pe_list)>0:
+		pe_delinked_names=', '.join([pe.name for pe in pe_list])
+		doc.add_comment('Comment', text='System : connected Payment entires {0} are unlinked.'.format(pe_delinked_names))
+	else:
+		doc.add_comment('Comment', text='System : No connected Payment entry found.')
