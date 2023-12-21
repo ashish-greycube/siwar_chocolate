@@ -151,7 +151,9 @@ class ClientRequestCT(Document):
 		for client_item in self.items:
 			print(client_item)
 			grand_total= grand_total + client_item.get('amount')
-		self.grand_total=grand_total	
+		self.grand_total=grand_total
+		# 23.50=24 and 23.51=24 and 23.49=23	
+		self.grand_total = math.floor(self.grand_total)  if math.floor(self.grand_total) + 0.5 > self.grand_total else math.ceil(self.grand_total)		
 		net_total_less_percentage=frappe.db.get_single_value('Siwar Settings', 'net_total_less_percentage') or 0
 		# self.crt_net_total=self.grand_total-(self.grand_total*(net_total_less_percentage/100))
 		self.crt_net_total=self.grand_total/((100+net_total_less_percentage)/100)
@@ -169,7 +171,7 @@ class ClientRequestCT(Document):
 		self.total_paid=find_payment_etnry_linked_with_client_request(self.name)
 		self.outstanding_amount=self.final_total-self.total_paid
 		# 23.50=24 and 23.51=24 and 23.49=23
-		self.outstanding_amount = math.floor(self.outstanding_amount)  if math.floor(self.outstanding_amount) + 0.5 > self.outstanding_amount else math.ceil(self.outstanding_amount)
+		# self.outstanding_amount = math.floor(self.outstanding_amount)  if math.floor(self.outstanding_amount) + 0.5 > self.outstanding_amount else math.ceil(self.outstanding_amount)
 		for packing_item in self.packing_items:
 			packing_item.amount=packing_item.rate*packing_item.qty
 

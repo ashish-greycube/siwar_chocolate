@@ -573,13 +573,18 @@ frappe.ui.form.on('Client Request CT', {
 	client_request_on_refresh_load: function(frm){
 		if (frm.doc.docstatus==0 && frm.is_new() == undefined && frm.doc.status=='Draft') {
 			frm.add_custom_button(__('Direct Cancel'), () => {
-				frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.direct_cancel_from_draft_state', {
-					client_request_name: frm.doc.name
-				}).then(r => {
-					console.log(r.message)
-					frm.reload_doc()
+				frappe.confirm('It is direct cancel. No changes can be done later.<br>Are you sure you want to proceed?',
+				() => {
+					frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.direct_cancel_from_draft_state', {
+						client_request_name: frm.doc.name
+					}).then(r => {
+						console.log(r.message)
+						frm.reload_doc()
+					})
+				}, () => {
+					// action to perform if No is selected
+					return
 				})				
-	
 		}).addClass("btn-warning").css({'color':'red'})}
 		if (frm.doc.docstatus==1) {
 			frm.fields_dict['items'].grid.update_docfield_property('qty','read_only',1);		
