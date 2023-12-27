@@ -209,12 +209,16 @@ class ClientRequestCT(Document):
 		sales_invoice_docstatus = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
 		# Cannot cancel
 		if stock_entry_docstatus == 1 and sales_invoice_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked material issue {0} and ").format("<a href='app/stock-entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry))
-			+_(" linked sales invoice {0} are in submitted state.").format("<a href='app/sales-invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
+			se_link=get_link_to_form('Stock Entry',self.stock_entry)
+			si_link=get_link_to_form('Sales Invoice',self.sales_invoice)
+			frappe.throw(_("Cannot cancel client request as linked material issue {0} and ").format(se_link)
+			+_(" linked sales invoice {0} are in submitted state.").format(si_link))
 		elif stock_entry_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked material issue {0} is in submitted state.").format("<a href='app/stock-entry/{0}'> Stock Entry {0} </a>".format(self.stock_entry)))
+			se_link=get_link_to_form('Stock Entry',self.stock_entry)
+			frappe.throw(_("Cannot cancel client request as linked material issue {0} is in submitted state.").format(se_link))
 		elif sales_invoice_docstatus == 1:
-			frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format("<a href='app/sales-invoice/{0}'> Sales Invoice {0} </a>".format(self.sales_invoice)))
+			si_link=get_link_to_form('Sales Invoice',self.sales_invoice)
+			frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format(si_link))
 		frappe.db.set(self, 'status', 'Cancelled')
 		# frappe.db.set(self, 'tray_status', 'Available')
 
