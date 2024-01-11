@@ -869,6 +869,8 @@ def direct_cancel_from_draft_state(client_request_name)	:
 		frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
 							.format(pe.name, client_request_name))
 	frappe.db.set_value('Client Request CT', client_request_name, 'docstatus', 2)
+	frappe.db.set_value('Client Request CT', client_request_name, 'status', 'Cancelled')
+	
 	frappe.msgprint(_("Client Request  {0} is direct cancelled.").format(client_request_name))
 	doc=frappe.get_doc('Client Request CT', client_request_name)
 	doc.add_comment('Comment', text='System : This doc is directly cancelled from draft stage')
