@@ -620,120 +620,32 @@ frappe.ui.form.on('Client Request CT', {
 				frm.remove_custom_button('Reserve Tray');
 			}
 		}
-		if (frm.is_new() == undefined && frm.doc.outstanding_amount>0) {
-			frm.add_custom_button(__('Payment'), () => frm.trigger('make_payment_entry_dialog'));
+		if (frm.is_new() == undefined && frm.doc.outstanding_amount > 0) {
+			frm.add_custom_button(__('Payment'), function () {
+				frappe.call({
+					method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry_having_unallocated_amount",
+					args: {
+						customer: frm.doc.customer,
+						client_request_ct: frm.doc.name
+					},
+					callback: function (r) {
+						let pe_list = r.message;
+						if (pe_list.length > 0) {
+							get_payment_entry_having_unallocated_amount(frm, pe_list)
+						}
+						else {
+							make_payment_entry_dialog(frm)
+						}
+					}
+				})
+			}
+			);
 		}	
 	},
 	refresh: function (frm) {
 		frm.trigger('client_request_on_refresh_load')
 	},
-	make_payment_entry_dialog: function (frm) {
-
-		frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_mode_of_payment_for_which_ref_is_required',{
-				company:frm.doc.company
-		})
-		.then(records => {
-			console.log(records);
-			let list_of_mop_for_which_ref_is_required=records.message
-			console.log('list_of_mop_for_which_ref_is_required',list_of_mop_for_which_ref_is_required,typeof(list_of_mop_for_which_ref_is_required))
-			let mop_condition=$.map(list_of_mop_for_which_ref_is_required, (row, idx)=>{ console.log(row);return "(doc.mode_of_payment =='"+row+"')" })
-			let mandatory_condition="eval:"+mop_condition.join('||')
-			console.log(mandatory_condition)
-			let d = new frappe.ui.Dialog({
-				title: 'Enter Payment Details',
-				fields: [
-					{
-						label: 'Posting Date',
-						fieldname: 'posting_date',
-						fieldtype: 'Date',
-						default:'Today',
-					},
-					{
-						label: 'Party',
-						fieldname: 'party',
-						fieldtype: 'Link',
-						options: 'Customer',
-						default:frm.doc.customer,
-						read_only:1
-					},
-					{
-						label: 'Paid Amount',
-						fieldname: 'paid_amount',
-						fieldtype: 'Currency',
-						reqd:1
-					},
-					{
-						label: 'Mode of Payment',
-						fieldname: 'mode_of_payment',
-						fieldtype: 'Link',
-						options: 'Mode of Payment',
-						reqd :1,
-					},
-					{
-						label: 'Cheque/Reference No',
-						fieldname: 'reference_no',
-						fieldtype: 'Data',
-						mandatory_depends_on: mandatory_condition,
-						depends_on:mandatory_condition
-						
-						
-					},
-					{
-						label: 'Cheque/Reference Date',
-						fieldname: 'reference_date',
-						fieldtype: 'Date',
-						mandatory_depends_on: mandatory_condition,
-						depends_on:mandatory_condition
-						
-					},
-					{
-						label: 'Client Request',
-						fieldname: 'client_request_ct',
-						fieldtype: 'Data',
-						default: frm.doc.name,
-						read_only:1					
-						
-					},				
-					
-				],
-				primary_action_label: 'Create Payment Entry',
-				primary_action: function(values) {
-					let user_paid_amount=values.paid_amount
-					if (user_paid_amount==0 || user_paid_amount > frm.doc.outstanding_amount) {
-						var msg = __("Incorrect Paid Amount: {0}",[user_paid_amount])
-					frappe.throw(msg);						
-					}
-					frappe.call({
-						
-						method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",
-						args: {
-						"dt": cur_frm.doc.doctype,
-						"dn": cur_frm.doc.name,
-						"posting_date":values.posting_date,
-						"user_paid_amount":user_paid_amount,
-						"mode_of_payment":values.mode_of_payment,
-						"reference_no":values.reference_no,
-						"reference_date":values.reference_date
-						},					
-						callback: function(response) {
-							console.log('response',response)
-							if (response.message) {
-								let url_list = '<a href="/app/payment-entry/'+ response.message + '" target="_blank">' + response.message + '</a><br>'
-								frappe.show_alert({
-									title:__('Payment Entry is created'),
-									message: __(url_list),
-									indicator:'green'
-								}, 12);													
-							}
-						}
-					});
-					// close the dialog box
-					d.hide();
-				},
-			});
-			d.show();
-		});
-	},
+    
 	delivery_rate: function (frm) {
 		if (frm.doc.delivery_rate && frm.doc.delivery_rate > 0) {
 			frappe.db.get_single_value('Siwar Settings', 'delivery_item')
@@ -1097,4 +1009,275 @@ async function refresh_tray_calculation(frm,row) {
 		},
 		freeze: true
 	});		
+}
+
+
+function get_payment_entry_having_unallocated_amount(frm, pe_list) {
+
+	const table_fields = [
+		{
+			fieldtype: "Link",
+			fieldname: "name",
+			options: "Payment Entry",
+			label: __("PE"),
+			read_only: 1,
+			in_list_view: 1,
+			columns: 2
+		},
+		{
+			fieldtype: "Currency",
+			fieldname: "unallocated_amount_for_cr_cf",
+			label: __("Unallocated Amount"),
+			read_only: 1,
+			in_list_view: 1,
+		},
+		{
+			fieldtype: "Currency",
+			fieldname: "to_be_allocated",
+			label: __("To Be Allocated"),
+			in_list_view: 1,
+
+			onchange: () => {
+				let payment_entry_list_data = cur_dialog.fields_dict.payment_entry_list.grid.data
+				let allocated_amount_total = 0;
+				for(let b of payment_entry_list_data){
+					if(b.to_be_allocated!=undefined) {
+						if(b.to_be_allocated > b.unallocated_amount_for_cr_cf){
+							frappe.throw(
+								__("Allocated Amonut Cann't be greater than Unallocated Amount")
+							)
+						}
+						else{
+							allocated_amount_total = allocated_amount_total + b.to_be_allocated
+						}
+						
+					}
+				}
+				cur_dialog.set_value('total_amount', allocated_amount_total)
+				if( allocated_amount_total > frm.doc.outstanding_amount){
+					cur_dialog.set_value('total_amount', 0)
+					frappe.throw(
+						__("Total Amount Cann't be greater than Total Outstanding amount!!")
+					)
+				}
+			}
+		}
+	];
+
+	frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_mode_of_payment_for_which_ref_is_required', {
+		company: frm.doc.company
+	})
+	.then(records => {
+			console.log(records);
+	
+	const dialog = new frappe.ui.Dialog({
+		title: __("Enter Payment Details"),
+		fields: [
+			{
+				label: 'Party',
+				fieldname: 'party',
+				fieldtype: 'Link',
+				options: 'Customer',
+				default: frm.doc.customer,
+				read_only: 1
+			},
+			{
+				fieldtype: 'Column Break'
+			},
+			{
+				label: 'Client Request',
+				fieldname: 'reference_client_request_ct',
+				fieldtype: 'Data',
+				default: frm.doc.name,
+				read_only: 1
+
+			},
+			{
+				fieldtype: 'Section Break'
+			},
+			{
+				label: "Perivous Payment Entry List",
+				fieldname: "payment_entry_list",
+				fieldtype: "Table",
+				cannot_add_rows: true,
+				cannot_delete_rows: true,
+				in_place_edit: false,
+				reqd: 1,
+				data: pe_list,
+				get_data: () => {
+					return data;
+				},
+				fields: table_fields
+			},
+			{
+				label: 'Total Amount',
+				fieldname: 'total_amount',
+				fieldtype: 'Currency',
+				reqd: 1,
+				read_only: 1
+			},
+			{
+				label: 'Message',
+				fieldname: 'msg',
+				fieldtype: 'HTML',
+				options: '<p class="alert alert-warning">Total Outstanding: ' + frm.doc.outstanding_amount + ' </p>',
+			},
+			
+		],
+		primary_action_label: 'Create Payment Entry',
+		primary_action: function (values) {
+			let update_payment_entry = values.payment_entry_list
+
+			let pe_to_be_used=[]
+
+			let to_be_paid_total=frm.doc.outstanding_amount
+			for (let a of update_payment_entry){
+
+				if(a.to_be_allocated > 0){
+					pe_to_be_used.push({"pe_name":a.name,"allocated_amount":a.to_be_allocated,
+					"reference_client_request_ct": values.reference_client_request_ct,"final_total":frm.doc.final_total,
+					"to_be_paid":to_be_paid_total})
+					to_be_paid_total=to_be_paid_total-a.to_be_allocated
+				}
+			}
+			
+			let user_paid_amount = values.total_amount
+
+			if (user_paid_amount == 0 || user_paid_amount > frm.doc.outstanding_amount) {
+				var msg = __("Incorrect Paid Amount: {0}", [user_paid_amount])
+				frappe.throw(msg);
+			}
+			frappe.call({
+
+				method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.update_payment_entry",
+				args: {
+					"pe_to_be_used": pe_to_be_used,
+					"dt": cur_frm.doc.doctype,
+					"dn": cur_frm.doc.name,
+				},
+				callback: function (response) {
+					console.log('response', response)
+				}
+			});
+			// close the dialog box
+			dialog.hide();
+		},
+	})
+
+	dialog.show()
+})}
+
+
+
+function make_payment_entry_dialog(frm) {
+
+	frappe.call('siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_mode_of_payment_for_which_ref_is_required', {
+		company: frm.doc.company
+	})
+		.then(records => {
+			console.log(records);
+			let list_of_mop_for_which_ref_is_required = records.message
+			console.log('list_of_mop_for_which_ref_is_required', list_of_mop_for_which_ref_is_required, typeof (list_of_mop_for_which_ref_is_required))
+			let mop_condition = $.map(list_of_mop_for_which_ref_is_required, (row, idx) => { console.log(row); return "(doc.mode_of_payment =='" + row + "')" })
+			let mandatory_condition = "eval:" + mop_condition.join('||')
+			let d = new frappe.ui.Dialog({
+				title: 'Enter Payment Details',
+				fields: [
+					{
+						label: 'Posting Date',
+						fieldname: 'posting_date',
+						fieldtype: 'Date',
+						default: 'Today',
+					},
+					{
+						label: 'Party',
+						fieldname: 'party',
+						fieldtype: 'Link',
+						options: 'Customer',
+						default: frm.doc.customer,
+						read_only: 1
+					},
+					{
+						label: 'Paid Amount',
+						fieldname: 'paid_amount',
+						fieldtype: 'Currency',
+						reqd: 1
+					},
+					{
+						label: 'Message',
+						fieldname: 'msg',
+						fieldtype: 'HTML',
+						options: '<p class="alert alert-warning">Total Outstanding: ' + frm.doc.outstanding_amount + ' </p>',
+					},
+					{
+						label: 'Mode of Payment',
+						fieldname: 'mode_of_payment',
+						fieldtype: 'Link',
+						options: 'Mode of Payment',
+						reqd: 1,
+					},
+					{
+						label: 'Cheque/Reference No',
+						fieldname: 'reference_no',
+						fieldtype: 'Data',
+						mandatory_depends_on: mandatory_condition,
+						depends_on: mandatory_condition
+
+
+					},
+					{
+						label: 'Cheque/Reference Date',
+						fieldname: 'reference_date',
+						fieldtype: 'Date',
+						mandatory_depends_on: mandatory_condition,
+						depends_on: mandatory_condition
+
+					},
+					{
+						label: 'Client Request',
+						fieldname: 'reference_client_request_ct',
+						fieldtype: 'Data',
+						default: frm.doc.name,
+						read_only: 1
+
+					},
+
+				],
+				primary_action_label: 'Create Payment Entry',
+				primary_action: function (values) {
+					let user_paid_amount = values.paid_amount
+					if (user_paid_amount == 0 || user_paid_amount > frm.doc.outstanding_amount) {
+						var msg = __("Incorrect Paid Amount: {0}", [user_paid_amount])
+						frappe.throw(msg);
+					}
+					frappe.call({
+
+						method: "siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct.get_payment_entry",
+						args: {
+							"dt": cur_frm.doc.doctype,
+							"dn": cur_frm.doc.name,
+							"posting_date": values.posting_date,
+							"user_paid_amount": user_paid_amount,
+							"mode_of_payment": values.mode_of_payment,
+							"reference_no": values.reference_no,
+							"reference_date": values.reference_date
+						},
+						callback: function (response) {
+							console.log('response', response)
+							if (response.message) {
+								let url_list = '<a href="/app/payment-entry/' + response.message + '" target="_blank">' + response.message + '</a><br>'
+								frappe.show_alert({
+									title: __('Payment Entry is created'),
+									message: __(url_list),
+									indicator: 'green'
+								}, 12);
+							}
+						}
+					});
+					// close the dialog box
+					d.hide();
+				},
+			});
+			d.show();
+		});
 }

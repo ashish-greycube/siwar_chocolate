@@ -221,6 +221,8 @@ class ClientRequestCT(Document):
 			frappe.throw(_("Cannot cancel client request as linked sales invoice {0} is in submitted state.").format(si_link))
 		frappe.db.set(self, 'status', 'Cancelled')
 		# frappe.db.set(self, 'tray_status', 'Available')
+		from siwar_chocolate.siwar_chocolate.doctype.client_request_ct.client_request_ct import direct_cancel_from_draft_state
+		direct_cancel_from_draft_state(self.name,direct_cancel=False)
 
 	@frappe.whitelist()
 	def cancel_tray(self, args=None):
@@ -794,7 +796,7 @@ def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,refe
 	pe = frappe.new_doc("Payment Entry")
 	pe.payment_type = payment_type
 	pe.company = doc.company
-	pe.cost_center = doc.get("cost_center")
+	pe.cost_center = doc.get("cost_center")	
 	pe.posting_date = posting_date or nowdate()
 	pe.mode_of_payment =mode_of_payment 
 	pe.party_type = party_type
@@ -814,7 +816,15 @@ def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,refe
 		pe.set("bank_account", bank_account)
 		pe.set_bank_account_data()
 
-	pe.client_request_ct=dn
+	# pe.client_request_ct=dn
+		
+	row = pe.append('cr_reference_payment_ct', {})
+	row.reference_client_request_ct = dn
+	row.final_total = flt(doc.final_total,2)
+	row.to_be_paid = flt(doc.outstanding_amount,2)
+	row.allocated_amount = flt((flt(user_paid_amount) or paid_amount),2)
+	row.outstanding_amount = flt((row.to_be_paid - row.allocated_amount),2)
+	
 	if reference_no:
 		pe.reference_no=reference_no
 	if reference_date:
@@ -830,15 +840,23 @@ def get_payment_entry(dt, dn, posting_date,user_paid_amount,mode_of_payment,refe
 	return pe.name
 
 
-def find_payment_etnry_linked_with_client_request(client_request):
+# def find_payment_etnry_linked_with_client_request(client_request):
+	# total_paid_amount=0
+	# pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request],'docstatus':1}, fields=['name', 'paid_amount'])
+	# print('pe_list',pe_list)
+	# for pe in pe_list:
+	# 	print(pe,'pe',pe['paid_amount'])
+	# 	print(pe.get('paid_amont'))
+	# 	if pe['paid_amount']:
+	# 		total_paid_amount=total_paid_amount+pe['paid_amount']
+	# return total_paid_amount
+
+def find_payment_etnry_linked_with_client_request(client_request_name):
 	total_paid_amount=0
-	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request],'docstatus':1}, fields=['name', 'paid_amount'])
-	print('pe_list',pe_list)
+	pe_list=frappe.db.get_list('CR Reference Payment', filters={'reference_client_request_ct': ['=', client_request_name], 'docstatus': 1}, fields=['parent','name', 'allocated_amount'])
 	for pe in pe_list:
-		print(pe,'pe',pe['paid_amount'])
-		print(pe.get('paid_amont'))
-		if pe['paid_amount']:
-			total_paid_amount=total_paid_amount+pe['paid_amount']
+		if pe['allocated_amount']:
+			total_paid_amount=total_paid_amount+pe['allocated_amount']
 	return total_paid_amount
 
 @frappe.whitelist()
@@ -862,20 +880,84 @@ def cancel_tray_via_dialog(selected_cancel_tray_items):
 			frappe.db.set_value('Client Request CT Tray Item', tray.item_hexcode, 'reserve_tray', None)
 
 @frappe.whitelist()
-def direct_cancel_from_draft_state(client_request_name)	:
-	pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request_name]}, fields=['name', 'paid_amount'])
-	for pe in pe_list:
-		frappe.db.set_value('Payment Entry', pe.name , 'client_request_ct', '')
-		frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
-							.format(pe.name, client_request_name))
-	frappe.db.set_value('Client Request CT', client_request_name, 'docstatus', 2)
-	frappe.db.set_value('Client Request CT', client_request_name, 'status', 'Cancelled')
+def direct_cancel_from_draft_state(client_request_name,direct_cancel=True):
+
+	# pe_list=frappe.db.get_list('Payment Entry', filters={'client_request_ct': ['=', client_request_name]}, fields=['name', 'paid_amount'])
+	# print(pe_list, "------pe_list")
+	# for pe in pe_list:
+	# 	frappe.db.set_value('Payment Entry', pe.name , 'client_request_ct', '')
+	# 	frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
+	# 						.format(pe.name, client_request_name))
+		
+	pe_cr_reference_payment_list=frappe.db.get_list('CR Reference Payment', filters={'reference_client_request_ct': ['=', client_request_name]}, fields=['parent','name', 'allocated_amount'])
+	print(pe_cr_reference_payment_list, "------child_list")
+	pe_distinct=[]
 	
-	frappe.msgprint(_("Client Request  {0} is direct cancelled.").format(client_request_name))
-	doc=frappe.get_doc('Client Request CT', client_request_name)
-	doc.add_comment('Comment', text='System : This doc is directly cancelled from draft stage')
-	if len(pe_list)>0:
-		pe_delinked_names=', '.join([pe.name for pe in pe_list])
-		doc.add_comment('Comment', text='System : connected Payment entires {0} are unlinked.'.format(pe_delinked_names))
-	else:
-		doc.add_comment('Comment', text='System : No connected Payment entry found.')
+	for pe in pe_cr_reference_payment_list:
+		if pe.parent not in pe_distinct:
+			pe_distinct.append(pe.parent)
+			
+		frappe.db.sql("""delete from `tabCR Reference Payment` where name = %s""", pe.name)
+
+	for pe in pe_cr_reference_payment_list:
+		unallocated_amount_for_cr_cf=frappe.db.get_value('Payment Entry',pe.parent,'unallocated_amount_for_cr_cf')
+		unallocated_amount_for_cr_cf=flt((unallocated_amount_for_cr_cf+pe.allocated_amount),2)
+
+		frappe.db.set_value('Payment Entry', pe.parent , 'unallocated_amount_for_cr_cf',unallocated_amount_for_cr_cf )
+		frappe.msgprint(_("Payment Entry {0} and Client Request {1} are unlinked.")
+							.format(pe.parent, client_request_name))
+		
+	if (direct_cancel==True):
+		frappe.db.set_value('Client Request CT', client_request_name, 'docstatus', 2)
+		frappe.db.set_value('Client Request CT', client_request_name, 'status', 'Cancelled')
+		
+		frappe.msgprint(_("Client Request  {0} is direct cancelled.").format(client_request_name))
+		doc=frappe.get_doc('Client Request CT', client_request_name)
+		doc.add_comment('Comment', text='System : This doc is directly cancelled from draft stage')
+
+	# if len(pe_list)>0:
+	# 	pe_delinked_names=', '.join([pe.name for pe in pe_list])
+	# 	doc.add_comment('Comment', text='System : connected Payment entires {0} are unlinked.'.format(pe_delinked_names))
+	# else:
+	# 	doc.add_comment('Comment', text='System : No connected Payment entry found.')
+
+@frappe.whitelist()
+def get_payment_entry_having_unallocated_amount(customer, client_request_ct):
+
+	pe_list = frappe.db.get_all('Payment Entry', 
+							 filters={'party_name': ['=', customer], 'docstatus': ['!=', 2]}, 
+							   fields=['name', 'unallocated_amount_for_cr_cf'])
+
+	data = []
+	for d in pe_list:
+		if d.unallocated_amount_for_cr_cf > 0:
+			child_list = frappe.db.get_list('CR Reference Payment',
+								   filters={'reference_client_request_ct': ['=', client_request_ct], 'parent': ['=', d.name]},
+								   fields=['Parent','reference_client_request_ct', 'allocated_amount'])
+			if 	len(child_list) > 0: 
+				pass
+			else:
+				data.append(d)	
+	return data
+
+@frappe.whitelist()
+def update_payment_entry(dt, dn, pe_to_be_used):
+	import json
+	pe_to_be_used=json.loads(pe_to_be_used)
+
+	for d in pe_to_be_used:
+		d = frappe._dict(d)
+		updated_pe = frappe.get_doc('Payment Entry', d.pe_name)
+		row = updated_pe.append('cr_reference_payment_ct', {})
+		row.reference_client_request_ct = d.reference_client_request_ct
+		row.final_total = flt(d.final_total,2)
+		row.to_be_paid = flt(d.to_be_paid,2)
+		row.allocated_amount = flt(d.allocated_amount,2)
+		row.outstanding_amount = flt((row.to_be_paid - row.allocated_amount),2)
+
+		updated_pe.save()
+		frappe.msgprint(_('Payment Entry {0} is updated').format("<a href='/app/payment-entry/{0}'>{0}</a>").format(d.pe_name))
+
+	doc = frappe.get_doc('Client Request CT', dn)
+	doc.save(ignore_permissions = True)
+	return 

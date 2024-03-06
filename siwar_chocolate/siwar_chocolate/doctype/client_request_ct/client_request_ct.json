@@ -721,19 +721,21 @@
  "is_submittable": 1,
  "links": [
   {
-   "link_doctype": "Payment Entry",
-   "link_fieldname": "client_request_ct"
-  },
-  {
    "link_doctype": "Sales Invoice",
    "link_fieldname": "linked_client_request"
   },
   {
    "link_doctype": "Stock Entry",
    "link_fieldname": "client_request_material_issue"
+  },
+  {
+   "group": "Reference",
+   "link_doctype": "Payment Entry",
+   "link_fieldname": "reference_client_request_ct",
+   "parent_doctype": "Payment Entry"
   }
  ],
- "modified": "2023-12-07 16:56:57.015815",
+ "modified": "2024-03-06 08:42:58.338865",
  "modified_by": "Administrator",
  "module": "Siwar Chocolate",
  "name": "Client Request CT",

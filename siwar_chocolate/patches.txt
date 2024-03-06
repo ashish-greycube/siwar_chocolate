@@ -1,3 +1,7 @@
 siwar_chocolate.patches.v0_0.drop_client_request_CT_custom_fields
 siwar_chocolate.patches.v0_0.transfer_client_request_CT_select_to_checkbox_fields
 siwar_chocolate.patches.v0_0.drop_client_request_CT_select_fields
+
+siwar_chocolate.patches.v0_0.cr_reference_payment_childtable
+siwar_chocolate.patches.v0_0.unallocated_amount_for_cr_cf
+siwar_chocolate.patches.v0_0.add_cr_reference_pe_table_in_all_payment_entry

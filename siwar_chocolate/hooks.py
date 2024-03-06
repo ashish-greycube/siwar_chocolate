@@ -92,9 +92,11 @@ doc_events = {
         "on_trash": "siwar_chocolate.api.unlink_client_request_from_sales_invoice"
 	},
 	"Payment Entry": {
+        "validate":"siwar_chocolate.api.custom_validation",
+        "on_update_after_submit":"siwar_chocolate.api.custom_validation",
 		"on_submit": "siwar_chocolate.api.update_client_request_paid_amount",
 		"on_cancel": "siwar_chocolate.api.unlink_client_request_from_payment_entry",
-        "on_trash":"siwar_chocolate.api.unlink_client_request_from_payment_entry"
+        "on_trash":"siwar_chocolate.api.unlink_client_request_from_payment_entry",
 	}    	
 }
 
